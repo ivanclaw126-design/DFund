@@ -11,9 +11,9 @@ TARGET = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
 
 def send_feishu(text: str):
     try:
-        # 使用 openclaw message send 命令，通过 stdin 传递消息
+        # 使用 openclaw message send 命令
         result = subprocess.run(
-            ['openclaw', 'message', 'send', '--channel', 'feishu', '-t', TARGET, '-m', text],
+            ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
             capture_output=True,
             text=True,
             timeout=30
@@ -38,8 +38,8 @@ def success_message():
     r95 = f95['rows'][-1]
     return (
         '📈 DFund 已完成今日更新\n\n'
-        f'SBFZ85: {r85["valuation_date"]}，单位净值 {r85["unit_nav"]:.4f}\n'
-        f'SBFZ95: {r95["valuation_date"]}，单位净值 {r95["unit_nav"]:.4f}'
+        f'SBFZ85 (衍盛天璇 CTA 一号): {r85["valuation_date"]}，单位净值 {r85["unit_nav"]:.4f}\n'
+        f'SBFZ95 (衍盛开阳多策略混合): {r95["valuation_date"]}，单位净值 {r95["unit_nav"]:.4f}'
     )
 
 

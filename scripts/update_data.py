@@ -56,7 +56,7 @@ def fetch_mail_rows(code: str, subject: str):
     script = f'''
     tell application "Mail"
       set targetSubject to "{subject}"
-      set targetMailbox to mailbox "INBOX" of account "{ACCOUNT}"
+      set targetMailbox to inbox
       set oldDelims to AppleScript's text item delimiters
       set AppleScript's text item delimiters to "§§REC§§"
       set outLines to {{}}
@@ -123,6 +123,24 @@ def fetch_mail_rows(code: str, subject: str):
 
 
 def enrich(rows):
+    # 按 valuation_date 去重：优先保留非 Fw: 的原始邮件，其次保留 received_at 最新的记录
+    seen = {}
+    for r in rows:
+        vd = r['valuation_date']
+        is_fwd = r['subject'].startswith('Fw:')
+        if vd not in seen:
+            seen[vd] = r
+        else:
+            existing_is_fwd = seen[vd]['subject'].startswith('Fw:')
+            # 优先保留非 Fw: 的记录
+            if existing_is_fwd and not is_fwd:
+                seen[vd] = r
+            elif existing_is_fwd == is_fwd and r['received_at'] > seen[vd]['received_at']:
+                # 同为 Fw: 或同为非 Fw: 时，保留较新的
+                seen[vd] = r
+    rows = list(seen.values())
+    rows.sort(key=lambda x: x['valuation_date'])
+    
     first = rows[0]['unit_nav']
     last = rows[-1]['unit_nav']
     rets = [rows[i]['unit_nav']/rows[i-1]['unit_nav'] - 1 for i in range(1, len(rows))]
