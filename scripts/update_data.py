@@ -206,6 +206,11 @@ def main():
     benchmarks = fetch_benchmarks(min_date, max_date)
     (DATA_DIR / 'benchmark_indices.json').write_text(json.dumps(benchmarks, ensure_ascii=False, indent=2), encoding='utf-8')
 
+    docs_data_dir = DOCS_DIR / 'data'
+    docs_data_dir.mkdir(parents=True, exist_ok=True)
+    for src in DATA_DIR.glob('*.json'):
+      (docs_data_dir / src.name).write_text(src.read_text(encoding='utf-8'), encoding='utf-8')
+
     index_html = DOCS_DIR / 'index.html'
     text = index_html.read_text(encoding='utf-8')
     if '</body>' in text:
