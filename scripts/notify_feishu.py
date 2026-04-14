@@ -6,14 +6,28 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / 'data'
-TARGET = 'user:ou_65f872e3769176d5575eec0965746ee8'
+TARGET = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
 
 
-def send_text(text: str):
-    script = f'''tell application "System Events" to do shell script "python3 - <<'PY'\nprint('noop')\nPY"'''
-    # Placeholder wrapper kept minimal; actual send uses OpenClaw message tool through CLI bridge if available.
-    subprocess.run(['python3', '-c', 'print("notify placeholder")'], check=False)
-    print(text)
+def send_feishu(text: str):
+    try:
+        result = subprocess.run(
+            ['openclaw', 'message', '--target', TARGET, '--message', text],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode == 0:
+            print(f'[OK] sent to {TARGET}')
+            return True
+        else:
+            print(f'[ERR] openclaw message: {result.stderr}')
+    except FileNotFoundError:
+        print('[ERR] openclaw command not found')
+    except Exception as e:
+        print(f'[ERR] failed: {e}')
+    print(f'[LOG] Would send: {text[:100]}')
+    return False
 
 
 def success_message():
@@ -22,20 +36,20 @@ def success_message():
     r85 = f85['rows'][-1]
     r95 = f95['rows'][-1]
     return (
-        'DFund 已完成今日更新\n\n'
+        '📈 DFund 已完成今日更新\n\n'
         f'SBFZ85: {r85["valuation_date"]}，单位净值 {r85["unit_nav"]:.4f}\n'
         f'SBFZ95: {r95["valuation_date"]}，单位净值 {r95["unit_nav"]:.4f}'
     )
 
 
 def failure_message(err: str):
-    return f'DFund 更新失败\n\n错误信息:\n{err[:1200]}'
+    return '🚨 DFund 更新失败\n\n错误信息:\n' + err[:1200]
 
 
 if __name__ == '__main__':
     mode = sys.argv[1] if len(sys.argv) > 1 else 'success'
     if mode == 'success':
-        send_text(success_message())
+        send_feishu(success_message())
     else:
         err = sys.argv[2] if len(sys.argv) > 2 else 'unknown error'
-        send_text(failure_message(err))
+        send_feishu(failure_message(err))
