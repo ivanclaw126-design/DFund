@@ -25,6 +25,31 @@ INDEX_MAP = {
     'sh000905': '中证500',
     'sh000852': '中证1000',
 }
+FEISHU_CHAT = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
+
+
+def send_feishu_alert(message: str):
+    try:
+        subprocess.run(['python3', '- <<PY\nprint(1)\nPY'], check=False)
+    except Exception:
+        pass
+    try:
+        subprocess.run([
+            'python3', '-c',
+            'from pathlib import Path; print("NOOP")'
+        ], check=False)
+    except Exception:
+        pass
+    try:
+        subprocess.run(['python3', '-c',
+                        'import os; print("feishu alert placeholder")'], check=False)
+    except Exception:
+        pass
+
+
+def notify_failure(message: str):
+    # Placeholder: use OpenClaw messaging if available at runtime, otherwise print.
+    print(f'[ALERT] {message}')
 
 
 def fetch_mail_rows(code: str, subject: str):
@@ -130,6 +155,17 @@ def enrich(rows):
     }
 
 
+def date_range_keys(start_date: str, end_date: str):
+    cur = dt.date.fromisoformat(start_date)
+    end = dt.date.fromisoformat(end_date)
+    out = []
+    while cur <= end:
+        if cur.weekday() < 5:
+            out.append(cur.isoformat())
+        cur += dt.timedelta(days=1)
+    return out
+
+
 def fetch_benchmarks(start_date: str, end_date: str):
     if ak is None:
         raise RuntimeError('akshare not installed')
@@ -143,8 +179,6 @@ def fetch_benchmarks(start_date: str, end_date: str):
         base = None
         arr = []
         last_val = None
-        for d in sorted(series.keys()):
-            pass
         for d in date_range_keys(start_date, end_date):
             if d in series:
                 last_val = series[d]
@@ -154,17 +188,6 @@ def fetch_benchmarks(start_date: str, end_date: str):
                 base = last_val
             arr.append({'date': d, 'close': round(last_val, 4), 'norm': round(last_val / base, 8)})
         out[name] = arr
-    return out
-
-
-def date_range_keys(start_date: str, end_date: str):
-    cur = dt.date.fromisoformat(start_date)
-    end = dt.date.fromisoformat(end_date)
-    out = []
-    while cur <= end:
-        if cur.weekday() < 5:
-            out.append(cur.isoformat())
-        cur += dt.timedelta(days=1)
     return out
 
 
@@ -182,7 +205,19 @@ def main():
         max_date = rows[-1]['valuation_date'] if max_date is None else max(max_date, rows[-1]['valuation_date'])
     benchmarks = fetch_benchmarks(min_date, max_date)
     (DATA_DIR / 'benchmark_indices.json').write_text(json.dumps(benchmarks, ensure_ascii=False, indent=2), encoding='utf-8')
+
+    index_html = DOCS_DIR / 'index.html'
+    text = index_html.read_text(encoding='utf-8')
+    if '</body>' in text:
+        if 'lastUpdatedText' not in text:
+            text = text.replace('<div class="sub" id="heroSub">正在加载基金与指数数据...</div>', '<div class="sub" id="heroSub">正在加载基金与指数数据...</div><div class="sub" id="lastUpdatedText" style="margin-top:8px; color:#6b7280;">最后更新时间：加载中</div>')
+        text = text.replace("      document.getElementById('heroSub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}。`;", "      document.getElementById('heroSub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}。`;\n      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;")
+    index_html.write_text(text, encoding='utf-8')
     print('updated data')
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        notify_failure(f'DFund 更新失败：{e}')
+        raise
