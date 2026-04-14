@@ -11,8 +11,9 @@ TARGET = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
 
 def send_feishu(text: str):
     try:
+        # 使用 openclaw message send 命令，通过 stdin 传递消息
         result = subprocess.run(
-            ['openclaw', 'message', '--target', TARGET, '--message', text],
+            ['openclaw', 'message', 'send', '--channel', 'feishu', '-t', TARGET, '-m', text],
             capture_output=True,
             text=True,
             timeout=30
