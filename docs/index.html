@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>基金业绩展示</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --brand: #2563eb;
+      --brand-soft: rgba(37, 99, 235, 0.12);
+      --up: #dc2626;
+      --down: #16a34a;
+      --shadow: 0 8px 30px rgba(17,24,39,.06);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    .page { max-width: 1440px; margin: 0 auto; padding: 28px 20px 40px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+    .hero, .section, .table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .hero { padding: 24px; margin-bottom: 18px; }
+    .eyebrow { color: var(--brand); font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+    h1 { margin: 0 0 8px; font-size: 30px; line-height: 1.25; }
+    .sub { color: var(--muted); font-size: 14px; }
+    .fund-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 0; }
+    .fund-tab { border: 1px solid var(--line); background: #fff; color: #374151; border-radius: 999px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .fund-tab.active { background: #111827; color: #fff; border-color: #111827; }
+    .export-btn { border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 999px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .export-btn:hover { background: var(--brand-soft); }
+    .grid-6 { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+    .metric-card { background: linear-gradient(180deg, #fff, #fbfdff); border: 1px solid #eef2f7; border-radius: 14px; padding: 14px 16px; }
+    .metric-card .label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .metric-card .value { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+    .metric-card .note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .pos { color: var(--up); }
+    .neg { color: var(--down); }
+    .layout { display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(320px, 1fr); gap: 18px; margin-bottom: 18px; }
+    .section { padding: 18px; }
+    .section h2 { margin: 0 0 12px; font-size: 18px; }
+    .section .section-sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .pill { border: 1px solid var(--line); background: #fff; color: #374151; border-radius: 999px; padding: 8px 12px; cursor: pointer; font-size: 13px; }
+    .pill.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .chart-shell { position: relative; height: 420px; border-radius: 14px; background: linear-gradient(180deg, #fcfdff, #fff); border: 1px solid #eff3f8; overflow: hidden; }
+    #chart { width: 100%; height: 100%; display: block; }
+    .tooltip { position: absolute; pointer-events: none; background: rgba(17,24,39,.92); color: #fff; padding: 10px 12px; border-radius: 10px; font-size: 12px; min-width: 132px; max-width: 220px; opacity: 0; transition: opacity .12s ease; box-shadow: 0 8px 20px rgba(0,0,0,.18); white-space: nowrap; }
+    .tooltip .t1 { font-weight: 700; margin-bottom: 4px; }
+    .legend { display: flex; gap: 16px; margin-top: 10px; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+    .legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    .legend .nav::before { background: var(--brand); }
+    .legend .ret::before { background: #f59e0b; }
+    .legend .idx1::before { background: rgba(99,102,241,.55); }
+    .legend .idx2::before { background: rgba(16,185,129,.55); }
+    .legend .idx3::before { background: rgba(245,158,11,.55); }
+    .legend .idx4::before { background: rgba(236,72,153,.55); }
+    .stat-list { display: grid; gap: 10px; }
+    .stat-item { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+    .stat-item:last-child { border-bottom: 0; }
+    .stat-item .k { color: var(--muted); font-size: 13px; }
+    .stat-item .v { font-weight: 600; text-align: right; }
+    .ret-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .ret-card { background: var(--card); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); }
+    .ret-card .k { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .ret-card .v { font-size: 24px; font-weight: 700; }
+    .table-wrap { padding: 18px; }
+    .table-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
+    input[type="search"] { padding: 10px 12px; min-width: 240px; border-radius: 10px; border: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 11px 10px; border-bottom: 1px solid #eef2f7; text-align: left; font-size: 13px; }
+    th { color: var(--muted); font-weight: 600; cursor: pointer; }
+    tbody tr:hover { background: #fafcff; }
+    @media (max-width: 1200px) { .grid-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .ret-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .grid-6, .ret-grid { grid-template-columns: 1fr; } .page { padding: 16px; } .hero { padding: 18px; } h1 { font-size: 24px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="fund-tabs">
+        <button class="fund-tab active" data-fund="SBFZ85">天璇 CTA 一号</button>
+        <button class="fund-tab" data-fund="SBFZ95">开阳 多策略混合</button>
+      </div>
+      <button class="export-btn" id="exportBtn">导出当前 tab 数据</button>
+    </div>
+
+    <section class="hero">
+      <div class="eyebrow">基金业绩概览</div>
+      <h1>基金净值与收益率分析</h1>
+      <div class="sub">加载中...</div>
+      <div class="grid-6">
+        <div class="metric-card"><div class="label">最新单位净值</div><div class="value">-</div><div class="note">-</div></div>
+        <div class="metric-card"><div class="label">成立以来收益</div><div class="value">-</div><div class="note">相对首个样本日</div></div>
+        <div class="metric-card"><div class="label">年初至今收益</div><div class="value">-</div><div class="note">按样本估算</div></div>
+        <div class="metric-card"><div class="label">近 20 个估值日</div><div class="value">-</div><div class="note">短中期表现</div></div>
+        <div class="metric-card"><div class="label">最大回撤</div><div class="value">-</div><div class="note">-</div></div>
+        <div class="metric-card"><div class="label">年化波动率</div><div class="value">-</div><div class="note">按样本日频近似</div></div>
+      </div>
+    </section>
+
+    <div class="ret-grid">
+      <div class="ret-card"><div class="k">近 5 个估值日收益</div><div class="v">-</div></div>
+      <div class="ret-card"><div class="k">近 20 个估值日收益</div><div class="v">-</div></div>
+      <div class="ret-card"><div class="k">近 60 个估值日收益</div><div class="v">-</div></div>
+    </div>
+
+    <div class="layout">
+      <section class="section">
+        <h2>净值与累计收益互动图表</h2>
+        <div class="section-sub">支持窗口自适应、鼠标悬停查看日期与当日单位净值，可切换观察单位净值与成立以来累计收益率。</div>
+        <div class="toolbar">
+          <button class="pill" data-series="nav">单位净值</button>
+          <button class="pill" data-series="return">累计收益率</button>
+          <button class="pill active" data-series="compare">归一化对比</button>
+        </div>
+        <div class="section-sub" id="chartDesc" style="margin-top:-4px; margin-bottom:10px;">当前为归一化对比模式，基金与四条宽基指数均从同一起点出发，便于观察相对收益与超额表现。</div>
+        <div class="chart-shell" id="chartShell">
+          <canvas id="chart"></canvas>
+          <div class="tooltip" id="tooltip"></div>
+        </div>
+        <div class="legend">
+          <span class="nav">基金主线</span>
+          <span class="ret">基金累计收益率</span>
+          <span class="idx1">上证指数</span>
+          <span class="idx2">沪深300</span>
+          <span class="idx3">中证500</span>
+          <span class="idx4">中证1000</span>
+        </div>
+      </section>
+
+      <aside class="section">
+        <h2>关键业绩指标</h2>
+        <div class="section-sub">先看收益，再看风险，最后看样本区间的极值表现。</div>
+        <div class="stat-list">
+          <div class="stat-item"><div class="k">最高单位净值</div><div class="v">-</div></div>
+          <div class="stat-item"><div class="k">最低单位净值</div><div class="v">-</div></div>
+          <div class="stat-item"><div class="k">最大回撤区间</div><div class="v">-</div></div>
+          <div class="stat-item"><div class="k">回撤对应净值</div><div class="v">-</div></div>
+          <div class="stat-item"><div class="k">样本起始日</div><div class="v">-</div></div>
+          <div class="stat-item"><div class="k">样本最新日</div><div class="v">-</div></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="table-wrap">
+      <div class="table-header">
+        <div>
+          <h2 style="margin:0 0 4px; font-size:18px;">净值明细表</h2>
+          <div class="sub">可搜索、排序，适合核对邮件原始记录与提取结果。</div>
+        </div>
+        <input id="search" type="search" placeholder="搜索日期、标题、净值" />
+      </div>
+      <table id="navTable">
+        <thead>
+          <tr>
+            <th data-key="valuation_date">估值日期</th>
+            <th data-key="unit_nav">单位净值</th>
+            <th data-key="cum_return">累计收益率</th>
+            <th data-key="accum_nav">累计单位净值</th>
+            <th data-key="nav_assets">资产净值</th>
+            <th data-key="paid_in_capital">实收资本</th>
+            <th data-key="received_at">收件时间</th>
+            <th data-key="subject">邮件标题</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script id="fund-configs-json" type="application/json">{"SBFZ85": {"name": "衍盛天璇CTA一号私募证券投资基金", "code": "SBFZ85", "rows": [{"received_at": "2025年12月24日 星期三 20:01:04", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-24", "valuation_date": "2025-12-24", "unit_nav": 1.0065, "accum_nav": 1.0065, "nav_assets": 13128910.78, "paid_in_capital": 13043814.5, "cum_return": 0.0}, {"received_at": "2025年12月25日 星期四 19:31:57", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-25", "valuation_date": "2025-12-25", "unit_nav": 1.011, "accum_nav": 1.011, "nav_assets": 13186902.76, "paid_in_capital": 13043814.5, "cum_return": 0.00447094}, {"received_at": "2025年12月26日 星期五 19:42:48", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-26", "valuation_date": "2025-12-26", "unit_nav": 1.0122, "accum_nav": 1.0122, "nav_assets": 13203328.98, "paid_in_capital": 13043814.5, "cum_return": 0.00566319}, {"received_at": "2025年12月29日 星期一 19:40:38", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-29", "valuation_date": "2025-12-29", "unit_nav": 1.0108, "accum_nav": 1.0108, "nav_assets": 13184624.53, "paid_in_capital": 13043814.5, "cum_return": 0.00427223}, {"received_at": "2025年12月30日 星期二 19:31:57", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-30", "valuation_date": "2025-12-30", "unit_nav": 1.0123, "accum_nav": 1.0123, "nav_assets": 13204237.31, "paid_in_capital": 13043814.5, "cum_return": 0.00576254}, {"received_at": "2025年12月31日 星期三 19:42:22", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-31", "valuation_date": "2025-12-31", "unit_nav": 1.0104, "accum_nav": 1.0104, "nav_assets": 13179407.39, "paid_in_capital": 13043814.5, "cum_return": 0.00387481}, {"received_at": "2026年1月5日 星期一 19:30:57", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-05", "valuation_date": "2026-01-05", "unit_nav": 1.02, "accum_nav": 1.02, "nav_assets": 13305051.94, "paid_in_capital": 13043814.5, "cum_return": 0.01341282}, {"received_at": "2026年1月6日 星期二 19:41:43", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-06", "valuation_date": "2026-01-06", "unit_nav": 1.0279, "accum_nav": 1.0279, "nav_assets": 13407277.24, "paid_in_capital": 13043814.5, "cum_return": 0.0212618}, {"received_at": "2026年1月7日 星期三 19:41:19", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-07", "valuation_date": "2026-01-07", "unit_nav": 1.0276, "accum_nav": 1.0276, "nav_assets": 13403227.7, "paid_in_capital": 13043814.5, "cum_return": 0.02096374}, {"received_at": "2026年1月8日 星期四 19:31:35", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-08", "valuation_date": "2026-01-08", "unit_nav": 1.0251, "accum_nav": 1.0251, "nav_assets": 13370812.87, "paid_in_capital": 13043814.5, "cum_return": 0.01847988}, {"received_at": "2026年1月9日 星期五 21:00:10", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-09", "valuation_date": "2026-01-09", "unit_nav": 1.0262, "accum_nav": 1.0262, "nav_assets": 13386133.59, "paid_in_capital": 13043814.5, "cum_return": 0.01957278}, {"received_at": "2026年1月12日 星期一 19:30:33", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-12", "valuation_date": "2026-01-12", "unit_nav": 1.0298, "accum_nav": 1.0298, "nav_assets": 13431894.56, "paid_in_capital": 13043814.5, "cum_return": 0.02314953}, {"received_at": "2026年1月13日 星期二 19:31:22", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-13", "valuation_date": "2026-01-13", "unit_nav": 1.0257, "accum_nav": 1.0257, "nav_assets": 13379361.79, "paid_in_capital": 13043814.5, "cum_return": 0.01907601}, {"received_at": "2026年1月14日 星期三 19:31:01", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-14", "valuation_date": "2026-01-14", "unit_nav": 1.0249, "accum_nav": 1.0249, "nav_assets": 13368027.91, "paid_in_capital": 13043814.5, "cum_return": 0.01828117}, {"received_at": "2026年1月15日 星期四 19:30:39", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-15", "valuation_date": "2026-01-15", "unit_nav": 1.0251, "accum_nav": 1.0251, "nav_assets": 13371521.11, "paid_in_capital": 13043814.5, "cum_return": 0.01847988}, {"received_at": "2026年1月16日 星期五 20:00:09", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-16", "valuation_date": "2026-01-16", "unit_nav": 1.0228, "accum_nav": 1.0228, "nav_assets": 13340629.39, "paid_in_capital": 13043814.5, "cum_return": 0.01619473}, {"received_at": "2026年1月19日 星期一 19:31:24", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-19", "valuation_date": "2026-01-19", "unit_nav": 1.0247, "accum_nav": 1.0247, "nav_assets": 13365590.18, "paid_in_capital": 13043814.5, "cum_return": 0.01808246}, {"received_at": "2026年1月20日 星期二 19:31:23", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-20", "valuation_date": "2026-01-20", "unit_nav": 1.0214, "accum_nav": 1.0214, "nav_assets": 13323252.75, "paid_in_capital": 13043814.5, "cum_return": 0.01480378}, {"received_at": "2026年1月21日 星期三 19:31:33", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-21", "valuation_date": "2026-01-21", "unit_nav": 1.0257, "accum_nav": 1.0257, "nav_assets": 13379107.07, "paid_in_capital": 13043814.5, "cum_return": 0.01907601}, {"received_at": "2026年1月22日 星期四 19:40:37", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-22", "valuation_date": "2026-01-22", "unit_nav": 1.0249, "accum_nav": 1.0249, "nav_assets": 13368479.45, "paid_in_capital": 13043814.5, "cum_return": 0.01828117}, {"received_at": "2026年1月23日 星期五 19:33:40", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-23", "valuation_date": "2026-01-23", "unit_nav": 1.0282, "accum_nav": 1.0282, "nav_assets": 13412251.73, "paid_in_capital": 13043814.5, "cum_return": 0.02155986}, {"received_at": "2026年1月26日 星期一 19:31:12", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-26", "valuation_date": "2026-01-26", "unit_nav": 1.0276, "accum_nav": 1.0276, "nav_assets": 13403426.1, "paid_in_capital": 13043814.5, "cum_return": 0.02096374}, {"received_at": "2026年1月27日 星期二 19:30:23", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-27", "valuation_date": "2026-01-27", "unit_nav": 1.0295, "accum_nav": 1.0295, "nav_assets": 13428143.14, "paid_in_capital": 13043814.5, "cum_return": 0.02285147}, {"received_at": "2026年1月28日 星期三 19:31:23", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-28", "valuation_date": "2026-01-28", "unit_nav": 1.0305, "accum_nav": 1.0305, "nav_assets": 16444102.21, "paid_in_capital": 15957850.44, "cum_return": 0.02384501}, {"received_at": "2026年1月29日 星期四 19:40:25", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-29", "valuation_date": "2026-01-29", "unit_nav": 1.0309, "accum_nav": 1.0309, "nav_assets": 16451566.28, "paid_in_capital": 15957850.44, "cum_return": 0.02424242}, {"received_at": "2026年1月30日 星期五 19:31:33", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-30", "valuation_date": "2026-01-30", "unit_nav": 1.0222, "accum_nav": 1.0222, "nav_assets": 16312700.27, "paid_in_capital": 15957850.44, "cum_return": 0.01559861}, {"received_at": "2026年2月2日 星期一 19:44:46", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-02", "valuation_date": "2026-02-02", "unit_nav": 1.004, "accum_nav": 1.004, "nav_assets": 16021051.64, "paid_in_capital": 15957850.44, "cum_return": -0.00248385}, {"received_at": "2026年2月3日 星期二 19:31:14", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-03", "valuation_date": "2026-02-03", "unit_nav": 1.013, "accum_nav": 1.013, "nav_assets": 16164790.52, "paid_in_capital": 15957850.44, "cum_return": 0.00645802}, {"received_at": "2026年2月4日 星期三 21:20:02", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-04", "valuation_date": "2026-02-04", "unit_nav": 1.0157, "accum_nav": 1.0157, "nav_assets": 16208752.95, "paid_in_capital": 15957850.44, "cum_return": 0.00914059}, {"received_at": "2026年2月5日 星期四 19:43:14", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-05", "valuation_date": "2026-02-05", "unit_nav": 1.0126, "accum_nav": 1.0126, "nav_assets": 16159713.53, "paid_in_capital": 15957850.44, "cum_return": 0.00606061}, {"received_at": "2026年2月6日 星期五 19:43:16", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-06", "valuation_date": "2026-02-06", "unit_nav": 1.012, "accum_nav": 1.012, "nav_assets": 16149577.42, "paid_in_capital": 15957850.44, "cum_return": 0.00546448}, {"received_at": "2026年2月9日 星期一 19:41:40", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-09", "valuation_date": "2026-02-09", "unit_nav": 1.0196, "accum_nav": 1.0196, "nav_assets": 16270327.24, "paid_in_capital": 15957850.44, "cum_return": 0.0130154}, {"received_at": "2026年2月10日 星期二 19:41:47", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-10", "valuation_date": "2026-02-10", "unit_nav": 1.0198, "accum_nav": 1.0198, "nav_assets": 16273485.23, "paid_in_capital": 15957850.44, "cum_return": 0.01321411}, {"received_at": "2026年2月11日 星期三 19:41:43", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-11", "valuation_date": "2026-02-11", "unit_nav": 1.0194, "accum_nav": 1.0194, "nav_assets": 16266637.97, "paid_in_capital": 15957850.44, "cum_return": 0.01281669}, {"received_at": "2026年2月12日 星期四 19:41:42", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-12", "valuation_date": "2026-02-12", "unit_nav": 1.021, "accum_nav": 1.021, "nav_assets": 16293556.13, "paid_in_capital": 15957850.44, "cum_return": 0.01440636}, {"received_at": "2026年2月13日 星期五 19:42:56", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-13", "valuation_date": "2026-02-13", "unit_nav": 1.0141, "accum_nav": 1.0141, "nav_assets": 16182857.81, "paid_in_capital": 15957850.44, "cum_return": 0.00755092}, {"received_at": "2026年2月24日 星期二 20:01:10", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-24", "valuation_date": "2026-02-24", "unit_nav": 1.0173, "accum_nav": 1.0173, "nav_assets": 16233938.42, "paid_in_capital": 15957850.44, "cum_return": 0.01073025}, {"received_at": "2026年2月25日 星期三 19:41:43", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-25", "valuation_date": "2026-02-25", "unit_nav": 1.0234, "accum_nav": 1.0234, "nav_assets": 16313463.64, "paid_in_capital": 15940844.64, "cum_return": 0.01679086}, {"received_at": "2026年2月26日 星期四 19:41:06", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-26", "valuation_date": "2026-02-26", "unit_nav": 1.0229, "accum_nav": 1.0229, "nav_assets": 16305135.7, "paid_in_capital": 15940844.64, "cum_return": 0.01629409}, {"received_at": "2026年2月27日 星期五 19:43:36", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-02-27", "valuation_date": "2026-02-27", "unit_nav": 1.0248, "accum_nav": 1.0248, "nav_assets": 16336148.18, "paid_in_capital": 15940844.64, "cum_return": 0.01818182}, {"received_at": "2026年3月2日 星期一 20:50:34", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-02", "valuation_date": "2026-03-02", "unit_nav": 1.0239, "accum_nav": 1.0239, "nav_assets": 16321531.11, "paid_in_capital": 15940844.64, "cum_return": 0.01728763}, {"received_at": "2026年3月3日 星期二 19:41:31", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-03", "valuation_date": "2026-03-03", "unit_nav": 1.0159, "accum_nav": 1.0159, "nav_assets": 16193614.57, "paid_in_capital": 15940844.64, "cum_return": 0.00933929}, {"received_at": "2026年3月4日 星期三 19:41:00", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-04", "valuation_date": "2026-03-04", "unit_nav": 1.0124, "accum_nav": 1.0124, "nav_assets": 16138674.39, "paid_in_capital": 15940844.64, "cum_return": 0.0058619}, {"received_at": "2026年3月5日 星期四 19:41:54", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-05", "valuation_date": "2026-03-05", "unit_nav": 1.0129, "accum_nav": 1.0129, "nav_assets": 16145684.73, "paid_in_capital": 15940844.64, "cum_return": 0.00635867}, {"received_at": "2026年3月6日 星期五 19:41:48", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-06", "valuation_date": "2026-03-06", "unit_nav": 1.0156, "accum_nav": 1.0156, "nav_assets": 16189369.85, "paid_in_capital": 15940844.64, "cum_return": 0.00904123}, {"received_at": "2026年3月9日 星期一 19:41:13", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-09", "valuation_date": "2026-03-09", "unit_nav": 1.0101, "accum_nav": 1.0101, "nav_assets": 16101545.32, "paid_in_capital": 15940844.64, "cum_return": 0.00357675}, {"received_at": "2026年3月10日 星期二 19:30:59", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-10", "valuation_date": "2026-03-10", "unit_nav": 1.0148, "accum_nav": 1.0148, "nav_assets": 16177241.12, "paid_in_capital": 15940844.64, "cum_return": 0.0082464}, {"received_at": "2026年3月11日 星期三 19:41:30", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-11", "valuation_date": "2026-03-11", "unit_nav": 1.0163, "accum_nav": 1.0163, "nav_assets": 16200576.67, "paid_in_capital": 15940844.64, "cum_return": 0.00973671}, {"received_at": "2026年3月12日 星期四 19:40:21", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-12", "valuation_date": "2026-03-12", "unit_nav": 1.0139, "accum_nav": 1.0139, "nav_assets": 16162511.25, "paid_in_capital": 15940844.64, "cum_return": 0.00735221}, {"received_at": "2026年3月13日 星期五 19:41:44", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-13", "valuation_date": "2026-03-13", "unit_nav": 1.0137, "accum_nav": 1.0137, "nav_assets": 16159687.42, "paid_in_capital": 15940844.64, "cum_return": 0.0071535}, {"received_at": "2026年3月16日 星期一 19:30:17", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-16", "valuation_date": "2026-03-16", "unit_nav": 1.0134, "accum_nav": 1.0134, "nav_assets": 16153816.48, "paid_in_capital": 15940844.64, "cum_return": 0.00685544}, {"received_at": "2026年3月17日 星期二 19:41:15", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-17", "valuation_date": "2026-03-17", "unit_nav": 1.012, "accum_nav": 1.012, "nav_assets": 16132732.97, "paid_in_capital": 15940844.64, "cum_return": 0.00546448}, {"received_at": "2026年3月18日 星期三 19:41:34", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-18", "valuation_date": "2026-03-18", "unit_nav": 1.0115, "accum_nav": 1.0115, "nav_assets": 16123791.57, "paid_in_capital": 15940844.64, "cum_return": 0.00496771}, {"received_at": "2026年3月19日 星期四 19:30:45", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-19", "valuation_date": "2026-03-19", "unit_nav": 1.0059, "accum_nav": 1.0059, "nav_assets": 16035529.31, "paid_in_capital": 15940844.64, "cum_return": -0.00059613}, {"received_at": "2026年3月20日 星期五 19:31:31", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-20", "valuation_date": "2026-03-20", "unit_nav": 1.0063, "accum_nav": 1.0063, "nav_assets": 16041590.69, "paid_in_capital": 15940844.64, "cum_return": -0.00019871}, {"received_at": "2026年3月24日 星期二 08:30:31", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-23", "valuation_date": "2026-03-23", "unit_nav": 0.9948, "accum_nav": 0.9948, "nav_assets": 15857368.07, "paid_in_capital": 15940844.64, "cum_return": -0.01162444}, {"received_at": "2026年3月24日 星期二 19:41:09", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-24", "valuation_date": "2026-03-24", "unit_nav": 0.9975, "accum_nav": 0.9975, "nav_assets": 15901265.47, "paid_in_capital": 15940844.64, "cum_return": -0.00894188}, {"received_at": "2026年3月25日 星期三 19:30:50", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-25", "valuation_date": "2026-03-25", "unit_nav": 1.0027, "accum_nav": 1.0027, "nav_assets": 15983900.88, "paid_in_capital": 15940844.64, "cum_return": -0.00377546}, {"received_at": "2026年3月26日 星期四 19:31:44", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-26", "valuation_date": "2026-03-26", "unit_nav": 0.9986, "accum_nav": 0.9986, "nav_assets": 15918684.38, "paid_in_capital": 15940844.64, "cum_return": -0.00784898}, {"received_at": "2026年3月27日 星期五 19:31:42", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-27", "valuation_date": "2026-03-27", "unit_nav": 1.0, "accum_nav": 1.0, "nav_assets": 15941484.86, "paid_in_capital": 15940844.64, "cum_return": -0.00645802}, {"received_at": "2026年3月30日 星期一 19:31:27", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-30", "valuation_date": "2026-03-30", "unit_nav": 1.0009, "accum_nav": 1.0009, "nav_assets": 15954630.62, "paid_in_capital": 15940844.64, "cum_return": -0.00556384}, {"received_at": "2026年3月31日 星期二 19:31:53", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-31", "valuation_date": "2026-03-31", "unit_nav": 0.9985, "accum_nav": 0.9985, "nav_assets": 15917255.31, "paid_in_capital": 15940844.64, "cum_return": -0.00794834}, {"received_at": "2026年4月1日 星期三 19:31:34", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-01", "valuation_date": "2026-04-01", "unit_nav": 1.0041, "accum_nav": 1.0041, "nav_assets": 15599025.21, "paid_in_capital": 15535844.64, "cum_return": -0.0023845}, {"received_at": "2026年4月2日 星期四 19:35:25", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-02", "valuation_date": "2026-04-02", "unit_nav": 0.9977, "accum_nav": 0.9977, "nav_assets": 15499684.87, "paid_in_capital": 15535844.64, "cum_return": -0.00874317}, {"received_at": "2026年4月3日 星期五 22:50:07", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-03", "valuation_date": "2026-04-03", "unit_nav": 0.9954, "accum_nav": 0.9954, "nav_assets": 15464848.6, "paid_in_capital": 15535844.64, "cum_return": -0.01102832}, {"received_at": "2026年4月7日 星期二 19:51:08", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-07", "valuation_date": "2026-04-07", "unit_nav": 0.996, "accum_nav": 0.996, "nav_assets": 15474009.4, "paid_in_capital": 15535844.64, "cum_return": -0.01043219}, {"received_at": "2026年4月8日 星期三 19:51:03", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-08", "valuation_date": "2026-04-08", "unit_nav": 1.0112, "accum_nav": 1.0112, "nav_assets": 15709109.99, "paid_in_capital": 15535844.64, "cum_return": 0.00466965}, {"received_at": "2026年4月9日 星期四 19:31:22", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-09", "valuation_date": "2026-04-09", "unit_nav": 1.0077, "accum_nav": 1.0077, "nav_assets": 15654765.11, "paid_in_capital": 15535844.64, "cum_return": 0.00119225}, {"received_at": "2026年4月10日 星期五 19:33:52", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-10", "valuation_date": "2026-04-10", "unit_nav": 1.015, "accum_nav": 1.015, "nav_assets": 15769322.48, "paid_in_capital": 15535844.64, "cum_return": 0.00844511}, {"received_at": "2026年4月13日 星期一 19:20:27", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-04-13", "valuation_date": "2026-04-13", "unit_nav": 1.0148, "accum_nav": 1.0148, "nav_assets": 15765280.55, "paid_in_capital": 15535844.64, "cum_return": 0.0082464}], "metrics": {"latest_nav": 1.0148, "latest_date": "2026-04-13", "since_inception": 0.0082463984103327, "ytd": -0.005098039215686412, "last_5d": 0.019489652401044832, "last_20d": 0.0010851336687380808, "last_60d": -0.010047800214613156, "max_nav": {"received_at": "2026年1月29日 星期四 19:40:25", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-29", "valuation_date": "2026-01-29", "unit_nav": 1.0309, "accum_nav": 1.0309, "nav_assets": 16451566.28, "paid_in_capital": 15957850.44, "cum_return": 0.02424242}, "min_nav": {"received_at": "2026年3月24日 星期二 08:30:31", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-23", "valuation_date": "2026-03-23", "unit_nav": 0.9948, "accum_nav": 0.9948, "nav_assets": 15857368.07, "paid_in_capital": 15940844.64, "cum_return": -0.01162444}, "max_drawdown": {"value": 0.035017945484527996, "start": {"received_at": "2026年1月29日 星期四 19:40:25", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-29", "valuation_date": "2026-01-29", "unit_nav": 1.0309, "accum_nav": 1.0309, "nav_assets": 16451566.28, "paid_in_capital": 15957850.44, "cum_return": 0.02424242}, "end": {"received_at": "2026年3月24日 星期二 08:30:31", "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-03-23", "valuation_date": "2026-03-23", "unit_nav": 0.9948, "accum_nav": 0.9948, "nav_assets": 15857368.07, "paid_in_capital": 15940844.64, "cum_return": -0.01162444}}, "annualized_vol": 0.07806779979451206}}, "SBFZ95": {"name": "衍盛开阳多策略混合私募证券投资基金", "code": "SBFZ95", "rows": [{"received_at": "2025年12月25日 星期四 09:48:08", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2025-12-24", "valuation_date": "2025-12-24", "unit_nav": 1.0016, "accum_nav": 1.0016, "nav_assets": 10837332.81, "paid_in_capital": 10820000.0, "cum_return": 0.0}, {"received_at": "2025年12月26日 星期五 09:51:00", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2025-12-25", "valuation_date": "2025-12-25", "unit_nav": 1.0065, "accum_nav": 1.0065, "nav_assets": 10890002.1, "paid_in_capital": 10820000.0, "cum_return": 0.00489217}, {"received_at": "2025年12月29日 星期一 09:00:51", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2025-12-26", "valuation_date": "2025-12-26", "unit_nav": 1.0065, "accum_nav": 1.0065, "nav_assets": 10890445.39, "paid_in_capital": 10820000.0, "cum_return": 0.00489217}, {"received_at": "2025年12月30日 星期二 09:32:27", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2025-12-29", "valuation_date": "2025-12-29", "unit_nav": 1.0036, "accum_nav": 1.0036, "nav_assets": 10858858.04, "paid_in_capital": 10820000.0, "cum_return": 0.00199681}, {"received_at": "2025年12月31日 星期三 09:41:36", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2025-12-30", "valuation_date": "2025-12-30", "unit_nav": 1.0031, "accum_nav": 1.0031, "nav_assets": 10853043.72, "paid_in_capital": 10820000.0, "cum_return": 0.0014976}, {"received_at": "2026年1月5日 星期一 10:28:05", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2025-12-31", "valuation_date": "2025-12-31", "unit_nav": 1.0017, "accum_nav": 1.0017, "nav_assets": 11837930.73, "paid_in_capital": 11817307.27, "cum_return": 9.984e-05}, {"received_at": "2026年1月6日 星期二 09:20:56", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-05", "valuation_date": "2026-01-05", "unit_nav": 1.0119, "accum_nav": 1.0119, "nav_assets": 11957577.94, "paid_in_capital": 11817307.27, "cum_return": 0.01028355}, {"received_at": "2026年1月7日 星期三 09:03:58", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-06", "valuation_date": "2026-01-06", "unit_nav": 1.0212, "accum_nav": 1.0212, "nav_assets": 12068049.43, "paid_in_capital": 11817307.27, "cum_return": 0.01956869}, {"received_at": "2026年1月8日 星期四 08:55:43", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-07", "valuation_date": "2026-01-07", "unit_nav": 1.0207, "accum_nav": 1.0207, "nav_assets": 12061578.59, "paid_in_capital": 11817307.27, "cum_return": 0.01906949}, {"received_at": "2026年1月9日 星期五 09:04:53", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-08", "valuation_date": "2026-01-08", "unit_nav": 1.0221, "accum_nav": 1.0221, "nav_assets": 12078782.95, "paid_in_capital": 11817307.27, "cum_return": 0.02046725}, {"received_at": "2026年1月12日 星期一 09:11:28", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-09", "valuation_date": "2026-01-09", "unit_nav": 1.0291, "accum_nav": 1.0291, "nav_assets": 12161433.97, "paid_in_capital": 11817307.27, "cum_return": 0.02745607}, {"received_at": "2026年1月13日 星期二 09:22:21", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-12", "valuation_date": "2026-01-12", "unit_nav": 1.0376, "accum_nav": 1.0376, "nav_assets": 12261228.08, "paid_in_capital": 11817307.27, "cum_return": 0.03594249}, {"received_at": "2026年1月14日 星期三 09:16:58", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-13", "valuation_date": "2026-01-13", "unit_nav": 1.0332, "accum_nav": 1.0332, "nav_assets": 12209799.54, "paid_in_capital": 11817307.27, "cum_return": 0.03154952}, {"received_at": "2026年1月15日 星期四 09:06:31", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-14", "valuation_date": "2026-01-14", "unit_nav": 1.0342, "accum_nav": 1.0342, "nav_assets": 12221826.23, "paid_in_capital": 11817307.27, "cum_return": 0.03254792}, {"received_at": "2026年1月16日 星期五 08:57:09", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-15", "valuation_date": "2026-01-15", "unit_nav": 1.035, "accum_nav": 1.035, "nav_assets": 12231362.67, "paid_in_capital": 11817307.27, "cum_return": 0.03334665}, {"received_at": "2026年1月19日 星期一 13:13:53", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-16", "valuation_date": "2026-01-16", "unit_nav": 1.0339, "accum_nav": 1.0339, "nav_assets": 12217357.72, "paid_in_capital": 11817307.27, "cum_return": 0.0322484}, {"received_at": "2026年1月20日 星期二 09:04:42", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-19", "valuation_date": "2026-01-19", "unit_nav": 1.0406, "accum_nav": 1.0406, "nav_assets": 12297321.71, "paid_in_capital": 11817307.27, "cum_return": 0.0389377}, {"received_at": "2026年1月21日 星期三 09:12:25", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-20", "valuation_date": "2026-01-20", "unit_nav": 1.0414, "accum_nav": 1.0414, "nav_assets": 12306849.99, "paid_in_capital": 11817307.27, "cum_return": 0.03973642}, {"received_at": "2026年1月22日 星期四 11:28:01", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-21", "valuation_date": "2026-01-21", "unit_nav": 1.0473, "accum_nav": 1.0473, "nav_assets": 12375773.55, "paid_in_capital": 11817307.27, "cum_return": 0.045627}, {"received_at": "2026年1月23日 星期五 09:01:30", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-22", "valuation_date": "2026-01-22", "unit_nav": 1.0523, "accum_nav": 1.0523, "nav_assets": 12435825.99, "paid_in_capital": 11817307.27, "cum_return": 0.05061901}, {"received_at": "2026年1月26日 星期一 09:31:01", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-23", "valuation_date": "2026-01-23", "unit_nav": 1.0566, "accum_nav": 1.0566, "nav_assets": 12486324.97, "paid_in_capital": 11817307.27, "cum_return": 0.05491214}, {"received_at": "2026年1月27日 星期二 09:01:36", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-26", "valuation_date": "2026-01-26", "unit_nav": 1.0545, "accum_nav": 1.0545, "nav_assets": 12461489.97, "paid_in_capital": 11817307.27, "cum_return": 0.0528155}, {"received_at": "2026年1月28日 星期三 09:14:33", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-27", "valuation_date": "2026-01-27", "unit_nav": 1.0519, "accum_nav": 1.0519, "nav_assets": 12431186.14, "paid_in_capital": 11817307.27, "cum_return": 0.05021965}, {"received_at": "2026年1月29日 星期四 09:21:28", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-28", "valuation_date": "2026-01-28", "unit_nav": 1.0522, "accum_nav": 1.0522, "nav_assets": 12433968.14, "paid_in_capital": 11817307.27, "cum_return": 0.05051917}, {"received_at": "2026年1月30日 星期五 09:05:17", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-29", "valuation_date": "2026-01-29", "unit_nav": 1.0521, "accum_nav": 1.0521, "nav_assets": 12433567.23, "paid_in_capital": 11817307.27, "cum_return": 0.05041933}, {"received_at": "2026年2月2日 星期一 08:46:21", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-01-30", "valuation_date": "2026-01-30", "unit_nav": 1.0479, "accum_nav": 1.0479, "nav_assets": 12383812.44, "paid_in_capital": 11817307.27, "cum_return": 0.04622604}, {"received_at": "2026年2月3日 星期二 08:58:37", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-02", "valuation_date": "2026-02-02", "unit_nav": 1.0278, "accum_nav": 1.0278, "nav_assets": 12145728.26, "paid_in_capital": 11817307.27, "cum_return": 0.02615815}, {"received_at": "2026年2月4日 星期三 11:45:41", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-03", "valuation_date": "2026-02-03", "unit_nav": 1.0411, "accum_nav": 1.0411, "nav_assets": 12303242.5, "paid_in_capital": 11817307.27, "cum_return": 0.0394369}, {"received_at": "2026年2月5日 星期四 09:13:18", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-04", "valuation_date": "2026-02-04", "unit_nav": 1.0503, "accum_nav": 1.0503, "nav_assets": 12411554.81, "paid_in_capital": 11817307.27, "cum_return": 0.0486222}, {"received_at": "2026年2月6日 星期五 09:16:59", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-05", "valuation_date": "2026-02-05", "unit_nav": 1.0459, "accum_nav": 1.0459, "nav_assets": 12360294.56, "paid_in_capital": 11817307.27, "cum_return": 0.04422923}, {"received_at": "2026年2月9日 星期一 09:27:18", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-06", "valuation_date": "2026-02-06", "unit_nav": 1.0468, "accum_nav": 1.0468, "nav_assets": 12370372.79, "paid_in_capital": 11817307.27, "cum_return": 0.0451278}, {"received_at": "2026年2月10日 星期二 10:11:25", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-09", "valuation_date": "2026-02-09", "unit_nav": 1.0599, "accum_nav": 1.0599, "nav_assets": 12524937.27, "paid_in_capital": 11817307.27, "cum_return": 0.05820687}, {"received_at": "2026年2月11日 星期三 09:07:08", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-10", "valuation_date": "2026-02-10", "unit_nav": 1.0595, "accum_nav": 1.0595, "nav_assets": 12520789.09, "paid_in_capital": 11817307.27, "cum_return": 0.05780751}, {"received_at": "2026年2月12日 星期四 09:14:01", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-11", "valuation_date": "2026-02-11", "unit_nav": 1.0581, "accum_nav": 1.0581, "nav_assets": 12663474.5, "paid_in_capital": 11967810.52, "cum_return": 0.05640974}, {"received_at": "2026年2月13日 星期五 09:04:13", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-12", "valuation_date": "2026-02-12", "unit_nav": 1.0538, "accum_nav": 1.0538, "nav_assets": 12611415.29, "paid_in_capital": 11967810.52, "cum_return": 0.05211661}, {"received_at": "2026年2月24日 星期二 10:45:37", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-13", "valuation_date": "2026-02-13", "unit_nav": 1.048, "accum_nav": 1.048, "nav_assets": 12541746.48, "paid_in_capital": 11967810.52, "cum_return": 0.04632588}, {"received_at": "2026年2月25日 星期三 09:35:14", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-24", "valuation_date": "2026-02-24", "unit_nav": 1.0631, "accum_nav": 1.0631, "nav_assets": 12723242.24, "paid_in_capital": 11967810.52, "cum_return": 0.06140176}, {"received_at": "2026年2月26日 星期四 09:26:53", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-25", "valuation_date": "2026-02-25", "unit_nav": 1.0686, "accum_nav": 1.0686, "nav_assets": 12789386.68, "paid_in_capital": 11967810.52, "cum_return": 0.06689297}, {"received_at": "2026年2月27日 星期五 10:03:57", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-26", "valuation_date": "2026-02-26", "unit_nav": 1.0682, "accum_nav": 1.0682, "nav_assets": 12784217.3, "paid_in_capital": 11967810.52, "cum_return": 0.06649361}, {"received_at": "2026年3月2日 星期一 08:43:40", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27", "valuation_date": "2026-02-27", "unit_nav": 1.0718, "accum_nav": 1.0718, "nav_assets": 12826621.92, "paid_in_capital": 11967810.52, "cum_return": 0.07008786}, {"received_at": "2026年3月3日 星期二 09:19:00", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-02", "valuation_date": "2026-03-02", "unit_nav": 1.0611, "accum_nav": 1.0611, "nav_assets": 12699527.58, "paid_in_capital": 11967810.52, "cum_return": 0.05940495}, {"received_at": "2026年3月4日 星期三 09:26:33", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-03", "valuation_date": "2026-03-03", "unit_nav": 1.0435, "accum_nav": 1.0435, "nav_assets": 12488387.65, "paid_in_capital": 11967810.52, "cum_return": 0.04183307}, {"received_at": "2026年3月5日 星期四 09:26:34", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-04", "valuation_date": "2026-03-04", "unit_nav": 1.0352, "accum_nav": 1.0352, "nav_assets": 12656419.09, "paid_in_capital": 12225517.88, "cum_return": 0.03354633}, {"received_at": "2026年3月6日 星期五 09:27:50", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-05", "valuation_date": "2026-03-05", "unit_nav": 1.0389, "accum_nav": 1.0389, "nav_assets": 12700789.3, "paid_in_capital": 12225517.88, "cum_return": 0.03724042}, {"received_at": "2026年3月9日 星期一 09:19:33", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-06", "valuation_date": "2026-03-06", "unit_nav": 1.0507, "accum_nav": 1.0507, "nav_assets": 12845865.15, "paid_in_capital": 12225517.88, "cum_return": 0.04902157}, {"received_at": "2026年3月10日 星期二 09:03:36", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-09", "valuation_date": "2026-03-09", "unit_nav": 1.0444, "accum_nav": 1.0444, "nav_assets": 12767774.78, "paid_in_capital": 12225517.88, "cum_return": 0.04273163}, {"received_at": "2026年3月11日 星期三 09:03:59", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-10", "valuation_date": "2026-03-10", "unit_nav": 1.0559, "accum_nav": 1.0559, "nav_assets": 12909166.4, "paid_in_capital": 12225517.88, "cum_return": 0.05421326}, {"received_at": "2026年3月12日 星期四 09:14:11", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-11", "valuation_date": "2026-03-11", "unit_nav": 1.0575, "accum_nav": 1.0575, "nav_assets": 13058319.48, "paid_in_capital": 12348124.69, "cum_return": 0.0558107}, {"received_at": "2026年3月13日 星期五 09:45:15", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-12", "valuation_date": "2026-03-12", "unit_nav": 1.0535, "accum_nav": 1.0535, "nav_assets": 13008472.66, "paid_in_capital": 12348124.69, "cum_return": 0.05181709}, {"received_at": "2026年3月16日 星期一 11:30:05", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-13", "valuation_date": "2026-03-13", "unit_nav": 1.05, "accum_nav": 1.05, "nav_assets": 12965774.72, "paid_in_capital": 12348124.69, "cum_return": 0.04832268}, {"received_at": "2026年3月17日 星期二 09:33:05", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-16", "valuation_date": "2026-03-16", "unit_nav": 1.0489, "accum_nav": 1.0489, "nav_assets": 12951540.67, "paid_in_capital": 12348124.69, "cum_return": 0.04722444}, {"received_at": "2026年3月18日 星期三 09:25:19", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-17", "valuation_date": "2026-03-17", "unit_nav": 1.0354, "accum_nav": 1.0354, "nav_assets": 12785733.49, "paid_in_capital": 12348124.69, "cum_return": 0.03374601}, {"received_at": "2026年3月19日 星期四 09:14:23", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-18", "valuation_date": "2026-03-18", "unit_nav": 1.0429, "accum_nav": 1.0429, "nav_assets": 12877940.91, "paid_in_capital": 12348124.69, "cum_return": 0.04123403}, {"received_at": "2026年3月20日 星期五 09:38:51", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-19", "valuation_date": "2026-03-19", "unit_nav": 1.0226, "accum_nav": 1.0226, "nav_assets": 12627607.19, "paid_in_capital": 12348124.69, "cum_return": 0.02096645}, {"received_at": "2026年3月23日 星期一 09:43:35", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-20", "valuation_date": "2026-03-20", "unit_nav": 1.0053, "accum_nav": 1.0053, "nav_assets": 12413923.64, "paid_in_capital": 12348124.69, "cum_return": 0.00369409}, {"received_at": "2026年3月24日 星期二 09:48:51", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-23", "valuation_date": "2026-03-23", "unit_nav": 0.9905, "accum_nav": 0.9905, "nav_assets": 12231244.57, "paid_in_capital": 12348124.69, "cum_return": -0.01108227}, {"received_at": "2026年3月25日 星期三 09:40:05", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-24", "valuation_date": "2026-03-24", "unit_nav": 0.994, "accum_nav": 0.994, "nav_assets": 12274536.06, "paid_in_capital": 12348124.69, "cum_return": -0.00758786}, {"received_at": "2026年3月26日 星期四 09:15:47", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-25", "valuation_date": "2026-03-25", "unit_nav": 0.9944, "accum_nav": 0.9944, "nav_assets": 12278745.02, "paid_in_capital": 12348124.69, "cum_return": -0.0071885}, {"received_at": "2026年3月27日 星期五 09:38:51", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-26", "valuation_date": "2026-03-26", "unit_nav": 0.9844, "accum_nav": 0.9844, "nav_assets": 12156084.74, "paid_in_capital": 12348124.69, "cum_return": -0.01717252}, {"received_at": "2026年3月30日 星期一 09:53:33", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-27", "valuation_date": "2026-03-27", "unit_nav": 0.9816, "accum_nav": 0.9816, "nav_assets": 12121149.85, "paid_in_capital": 12348124.69, "cum_return": -0.01996805}, {"received_at": "2026年3月31日 星期二 09:29:54", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-30", "valuation_date": "2026-03-30", "unit_nav": 0.9805, "accum_nav": 0.9805, "nav_assets": 12107678.72, "paid_in_capital": 12348124.69, "cum_return": -0.02106629}, {"received_at": "2026年4月1日 星期三 09:41:18", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-03-31", "valuation_date": "2026-03-31", "unit_nav": 0.9743, "accum_nav": 0.9743, "nav_assets": 12030481.69, "paid_in_capital": 12348124.69, "cum_return": -0.02725639}, {"received_at": "2026年4月2日 星期四 09:50:30", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-01", "valuation_date": "2026-04-01", "unit_nav": 0.9818, "accum_nav": 0.9818, "nav_assets": 12123484.17, "paid_in_capital": 12348124.69, "cum_return": -0.01976837}, {"received_at": "2026年4月3日 星期五 09:51:30", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-02", "valuation_date": "2026-04-02", "unit_nav": 0.9736, "accum_nav": 0.9736, "nav_assets": 12022255.04, "paid_in_capital": 12348124.69, "cum_return": -0.02795527}, {"received_at": "2026年4月7日 星期二 09:22:16", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-03", "valuation_date": "2026-04-03", "unit_nav": 0.9684, "accum_nav": 0.9684, "nav_assets": 11957380.46, "paid_in_capital": 12348124.69, "cum_return": -0.03314696}, {"received_at": "2026年4月8日 星期三 09:24:32", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-07", "valuation_date": "2026-04-07", "unit_nav": 0.9683, "accum_nav": 0.9683, "nav_assets": 11956959.84, "paid_in_capital": 12348124.69, "cum_return": -0.03324681}, {"received_at": "2026年4月9日 星期四 09:07:05", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-08", "valuation_date": "2026-04-08", "unit_nav": 0.9775, "accum_nav": 0.9775, "nav_assets": 12069681.66, "paid_in_capital": 12348124.69, "cum_return": -0.0240615}, {"received_at": "2026年4月10日 星期五 09:17:08", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-09", "valuation_date": "2026-04-09", "unit_nav": 0.9677, "accum_nav": 0.9677, "nav_assets": 11949007.5, "paid_in_capital": 12348124.69, "cum_return": -0.03384585}, {"received_at": "2026年4月13日 星期一 09:09:20", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-10", "valuation_date": "2026-04-10", "unit_nav": 0.9691, "accum_nav": 0.9691, "nav_assets": 11966084.78, "paid_in_capital": 12348124.69, "cum_return": -0.03244808}, {"received_at": "2026年4月14日 星期二 09:19:09", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-13", "valuation_date": "2026-04-13", "unit_nav": 0.968, "accum_nav": 0.968, "nav_assets": 11953029.46, "paid_in_capital": 12348124.69, "cum_return": -0.03354633}], "metrics": {"latest_nav": 0.968, "latest_date": "2026-04-13", "since_inception": -0.033546325878594296, "last_5d": -0.00041305245766221077, "last_20d": -0.0780952380952381, "last_60d": -0.052930241659328914, "annualized_vol": 0.12097633522352162, "max_nav": {"received_at": "2026年3月2日 星期一 08:43:40", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27", "valuation_date": "2026-02-27", "unit_nav": 1.0718, "accum_nav": 1.0718, "nav_assets": 12826621.92, "paid_in_capital": 11967810.52, "cum_return": 0.07008786}, "min_nav": {"received_at": "2026年4月10日 星期五 09:17:08", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-09", "valuation_date": "2026-04-09", "unit_nav": 0.9677, "accum_nav": 0.9677, "nav_assets": 11949007.5, "paid_in_capital": 12348124.69, "cum_return": -0.03384585}, "max_drawdown": {"value": 0.09712632953909318, "start": {"received_at": "2026年3月2日 星期一 08:43:40", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27", "valuation_date": "2026-02-27", "unit_nav": 1.0718, "accum_nav": 1.0718, "nav_assets": 12826621.92, "paid_in_capital": 11967810.52, "cum_return": 0.07008786}, "end": {"received_at": "2026年4月10日 星期五 09:17:08", "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-04-09", "valuation_date": "2026-04-09", "unit_nav": 0.9677, "accum_nav": 0.9677, "nav_assets": 11949007.5, "paid_in_capital": 12348124.69, "cum_return": -0.03384585}}}}}</script>
+  <script>
+    window.__FUND_CONFIGS__ = JSON.parse(document.getElementById('fund-configs-json').textContent);
+  </script>
+<script>
+    const fundConfigs = window.__FUND_CONFIGS__;
+    const benchmarks = {"上证指数": [{"date": "2025-12-24", "close": 3940.947, "norm": 1.0}, {"date": "2025-12-25", "close": 3959.621, "norm": 1.00473845}, {"date": "2025-12-26", "close": 3963.679, "norm": 1.00576816}, {"date": "2025-12-29", "close": 3965.28, "norm": 1.0061744}, {"date": "2025-12-30", "close": 3965.116, "norm": 1.00613279}, {"date": "2025-12-31", "close": 3968.84, "norm": 1.00707774}, {"date": "2026-01-05", "close": 4023.417, "norm": 1.02092644}, {"date": "2026-01-06", "close": 4083.667, "norm": 1.03621465}, {"date": "2026-01-07", "close": 4085.772, "norm": 1.03674878}, {"date": "2026-01-08", "close": 4082.979, "norm": 1.03604007}, {"date": "2026-01-09", "close": 4120.426, "norm": 1.0455421}, {"date": "2026-01-12", "close": 4165.287, "norm": 1.0569254}, {"date": "2026-01-13", "close": 4138.759, "norm": 1.05019403}, {"date": "2026-01-14", "close": 4126.093, "norm": 1.04698008}, {"date": "2026-01-15", "close": 4112.601, "norm": 1.04355654}, {"date": "2026-01-16", "close": 4101.913, "norm": 1.0408445}, {"date": "2026-01-19", "close": 4114.0, "norm": 1.04391153}, {"date": "2026-01-20", "close": 4113.649, "norm": 1.04382246}, {"date": "2026-01-21", "close": 4116.94, "norm": 1.04465754}, {"date": "2026-01-22", "close": 4122.576, "norm": 1.04608765}, {"date": "2026-01-23", "close": 4136.164, "norm": 1.04953556}, {"date": "2026-01-26", "close": 4132.605, "norm": 1.04863247}, {"date": "2026-01-27", "close": 4139.904, "norm": 1.05048457}, {"date": "2026-01-28", "close": 4151.238, "norm": 1.05336052}, {"date": "2026-01-29", "close": 4157.985, "norm": 1.05507255}, {"date": "2026-01-30", "close": 4117.948, "norm": 1.04491332}, {"date": "2026-02-02", "close": 4015.746, "norm": 1.01897996}, {"date": "2026-02-03", "close": 4067.738, "norm": 1.03217272}, {"date": "2026-02-04", "close": 4102.202, "norm": 1.04091783}, {"date": "2026-02-05", "close": 4075.917, "norm": 1.03424811}, {"date": "2026-02-06", "close": 4065.583, "norm": 1.0316259}, {"date": "2026-02-09", "close": 4123.09, "norm": 1.04621808}, {"date": "2026-02-10", "close": 4128.373, "norm": 1.04755862}, {"date": "2026-02-11", "close": 4131.985, "norm": 1.04847515}, {"date": "2026-02-12", "close": 4134.018, "norm": 1.04899102}, {"date": "2026-02-13", "close": 4082.073, "norm": 1.03581017}, {"date": "2026-02-24", "close": 4117.409, "norm": 1.04477655}, {"date": "2026-02-25", "close": 4147.231, "norm": 1.05234376}, {"date": "2026-02-26", "close": 4146.631, "norm": 1.05219152}, {"date": "2026-02-27", "close": 4162.882, "norm": 1.05631514}, {"date": "2026-03-02", "close": 4182.591, "norm": 1.06131623}, {"date": "2026-03-03", "close": 4122.676, "norm": 1.04611303}, {"date": "2026-03-04", "close": 4082.474, "norm": 1.03591193}, {"date": "2026-03-05", "close": 4108.567, "norm": 1.04253292}, {"date": "2026-03-06", "close": 4124.194, "norm": 1.04649821}, {"date": "2026-03-09", "close": 4096.602, "norm": 1.03949685}, {"date": "2026-03-10", "close": 4123.138, "norm": 1.04623026}, {"date": "2026-03-11", "close": 4133.433, "norm": 1.04884258}, {"date": "2026-03-12", "close": 4129.103, "norm": 1.04774385}, {"date": "2026-03-13", "close": 4095.449, "norm": 1.03920428}, {"date": "2026-03-16", "close": 4084.786, "norm": 1.03649859}, {"date": "2026-03-17", "close": 4049.907, "norm": 1.02764818}, {"date": "2026-03-18", "close": 4062.984, "norm": 1.03096641}, {"date": "2026-03-19", "close": 4006.552, "norm": 1.01664701}, {"date": "2026-03-20", "close": 3957.053, "norm": 1.00408683}, {"date": "2026-03-23", "close": 3813.283, "norm": 0.96760576}, {"date": "2026-03-24", "close": 3881.28, "norm": 0.98485973}, {"date": "2026-03-25", "close": 3931.838, "norm": 0.99768863}, {"date": "2026-03-26", "close": 3889.084, "norm": 0.98683997}, {"date": "2026-03-27", "close": 3913.724, "norm": 0.99309227}, {"date": "2026-03-30", "close": 3923.287, "norm": 0.99551884}, {"date": "2026-03-31", "close": 3891.861, "norm": 0.98754462}, {"date": "2026-04-01", "close": 3948.552, "norm": 1.00192974}, {"date": "2026-04-02", "close": 3919.285, "norm": 0.99450335}, {"date": "2026-04-03", "close": 3880.097, "norm": 0.98455955}, {"date": "2026-04-07", "close": 3890.165, "norm": 0.98711426}, {"date": "2026-04-08", "close": 3994.998, "norm": 1.01371523}, {"date": "2026-04-09", "close": 3966.171, "norm": 1.00640049}, {"date": "2026-04-10", "close": 3986.225, "norm": 1.01148912}, {"date": "2026-04-13", "close": 3988.558, "norm": 1.01208111}], "沪深300": [{"date": "2025-12-24", "close": 4634.059, "norm": 1.0}, {"date": "2025-12-25", "close": 4642.536, "norm": 1.00182928}, {"date": "2025-12-26", "close": 4657.24, "norm": 1.00500231}, {"date": "2025-12-29", "close": 4639.372, "norm": 1.00114651}, {"date": "2025-12-30", "close": 4651.282, "norm": 1.00371661}, {"date": "2025-12-31", "close": 4629.94, "norm": 0.99911115}, {"date": "2026-01-05", "close": 4717.746, "norm": 1.01805911}, {"date": "2026-01-06", "close": 4790.694, "norm": 1.03380082}, {"date": "2026-01-07", "close": 4776.666, "norm": 1.03077367}, {"date": "2026-01-08", "close": 4737.654, "norm": 1.02235513}, {"date": "2026-01-09", "close": 4758.922, "norm": 1.02694463}, {"date": "2026-01-12", "close": 4789.916, "norm": 1.03363293}, {"date": "2026-01-13", "close": 4761.032, "norm": 1.02739995}, {"date": "2026-01-14", "close": 4741.931, "norm": 1.02327808}, {"date": "2026-01-15", "close": 4751.429, "norm": 1.02532769}, {"date": "2026-01-16", "close": 4731.873, "norm": 1.02110763}, {"date": "2026-01-19", "close": 4734.456, "norm": 1.02166502}, {"date": "2026-01-20", "close": 4718.878, "norm": 1.01830339}, {"date": "2026-01-21", "close": 4723.069, "norm": 1.01920778}, {"date": "2026-01-22", "close": 4723.709, "norm": 1.01934589}, {"date": "2026-01-23", "close": 4702.497, "norm": 1.01476848}, {"date": "2026-01-26", "close": 4706.964, "norm": 1.01573243}, {"date": "2026-01-27", "close": 4705.692, "norm": 1.01545794}, {"date": "2026-01-28", "close": 4717.991, "norm": 1.01811198}, {"date": "2026-01-29", "close": 4753.87, "norm": 1.02585444}, {"date": "2026-01-30", "close": 4706.34, "norm": 1.01559777}, {"date": "2026-02-02", "close": 4605.98, "norm": 0.99394073}, {"date": "2026-02-03", "close": 4660.107, "norm": 1.00562099}, {"date": "2026-02-04", "close": 4698.683, "norm": 1.01394544}, {"date": "2026-02-05", "close": 4670.419, "norm": 1.00784625}, {"date": "2026-02-06", "close": 4643.596, "norm": 1.00205802}, {"date": "2026-02-09", "close": 4719.056, "norm": 1.0183418}, {"date": "2026-02-10", "close": 4724.296, "norm": 1.01947256}, {"date": "2026-02-11", "close": 4713.819, "norm": 1.01721169}, {"date": "2026-02-12", "close": 4719.578, "norm": 1.01845445}, {"date": "2026-02-13", "close": 4660.406, "norm": 1.00568551}, {"date": "2026-02-24", "close": 4707.544, "norm": 1.01585759}, {"date": "2026-02-25", "close": 4735.886, "norm": 1.02197361}, {"date": "2026-02-26", "close": 4726.874, "norm": 1.02002888}, {"date": "2026-02-27", "close": 4710.647, "norm": 1.0165272}, {"date": "2026-03-02", "close": 4728.669, "norm": 1.02041623}, {"date": "2026-03-03", "close": 4655.896, "norm": 1.00471228}, {"date": "2026-03-04", "close": 4602.625, "norm": 0.99321675}, {"date": "2026-03-05", "close": 4647.692, "norm": 1.00294191}, {"date": "2026-03-06", "close": 4660.439, "norm": 1.00569263}, {"date": "2026-03-09", "close": 4615.455, "norm": 0.99598538}, {"date": "2026-03-10", "close": 4674.756, "norm": 1.00878215}, {"date": "2026-03-11", "close": 4704.496, "norm": 1.01519985}, {"date": "2026-03-12", "close": 4687.56, "norm": 1.01154517}, {"date": "2026-03-13", "close": 4669.14, "norm": 1.00757025}, {"date": "2026-03-16", "close": 4671.559, "norm": 1.00809226}, {"date": "2026-03-17", "close": 4637.439, "norm": 1.00072938}, {"date": "2026-03-18", "close": 4658.332, "norm": 1.00523796}, {"date": "2026-03-19", "close": 4583.251, "norm": 0.98903596}, {"date": "2026-03-20", "close": 4567.018, "norm": 0.98553299}, {"date": "2026-03-23", "close": 4417.997, "norm": 0.95337522}, {"date": "2026-03-24", "close": 4474.722, "norm": 0.9656161}, {"date": "2026-03-25", "close": 4537.466, "norm": 0.97915585}, {"date": "2026-03-26", "close": 4477.534, "norm": 0.96622292}, {"date": "2026-03-27", "close": 4502.57, "norm": 0.97162552}, {"date": "2026-03-30", "close": 4491.95, "norm": 0.9693338}, {"date": "2026-03-31", "close": 4450.049, "norm": 0.96029183}, {"date": "2026-04-01", "close": 4526.067, "norm": 0.97669602}, {"date": "2026-04-02", "close": 4478.914, "norm": 0.96652071}, {"date": "2026-04-03", "close": 4440.789, "norm": 0.95829358}, {"date": "2026-04-07", "close": 4440.616, "norm": 0.95825625}, {"date": "2026-04-08", "close": 4595.556, "norm": 0.9916913}, {"date": "2026-04-09", "close": 4566.224, "norm": 0.98536165}, {"date": "2026-04-10", "close": 4636.566, "norm": 1.00054099}, {"date": "2026-04-13", "close": 4646.155, "norm": 1.00261024}], "中证500": [{"date": "2025-12-24", "close": 7352.04, "norm": 1.0}, {"date": "2025-12-25", "close": 7410.712, "norm": 1.00798037}, {"date": "2025-12-26", "close": 7458.839, "norm": 1.01452644}, {"date": "2025-12-29", "close": 7430.615, "norm": 1.01068751}, {"date": "2025-12-30", "close": 7458.936, "norm": 1.01453964}, {"date": "2025-12-31", "close": 7465.574, "norm": 1.01544252}, {"date": "2026-01-05", "close": 7651.198, "norm": 1.04069048}, {"date": "2026-01-06", "close": 7814.136, "norm": 1.06285276}, {"date": "2026-01-07", "close": 7875.082, "norm": 1.07114243}, {"date": "2026-01-08", "close": 7894.545, "norm": 1.07378972}, {"date": "2026-01-09", "close": 8056.686, "norm": 1.0958436}, {"date": "2026-01-12", "close": 8249.128, "norm": 1.12201892}, {"date": "2026-01-13", "close": 8143.28, "norm": 1.10762183}, {"date": "2026-01-14", "close": 8227.697, "norm": 1.11910395}, {"date": "2026-01-15", "close": 8223.268, "norm": 1.11850153}, {"date": "2026-01-16", "close": 8232.674, "norm": 1.1197809}, {"date": "2026-01-19", "close": 8287.947, "norm": 1.12729895}, {"date": "2026-01-20", "close": 8247.805, "norm": 1.12183897}, {"date": "2026-01-21", "close": 8340.113, "norm": 1.1343944}, {"date": "2026-01-22", "close": 8387.595, "norm": 1.14085274}, {"date": "2026-01-23", "close": 8590.166, "norm": 1.16840578}, {"date": "2026-01-26", "close": 8506.693, "norm": 1.15705206}, {"date": "2026-01-27", "close": 8548.932, "norm": 1.16279726}, {"date": "2026-01-28", "close": 8601.164, "norm": 1.16990169}, {"date": "2026-01-29", "close": 8517.843, "norm": 1.15856864}, {"date": "2026-01-30", "close": 8370.52, "norm": 1.13853026}, {"date": "2026-02-02", "close": 8037.046, "norm": 1.09317224}, {"date": "2026-02-03", "close": 8286.701, "norm": 1.12712948}, {"date": "2026-02-04", "close": 8299.057, "norm": 1.1288101}, {"date": "2026-02-05", "close": 8146.107, "norm": 1.10800635}, {"date": "2026-02-06", "close": 8146.413, "norm": 1.10804797}, {"date": "2026-02-09", "close": 8311.283, "norm": 1.13047304}, {"date": "2026-02-10", "close": 8306.445, "norm": 1.12981499}, {"date": "2026-02-11", "close": 8325.811, "norm": 1.13244909}, {"date": "2026-02-12", "close": 8423.57, "norm": 1.14574594}, {"date": "2026-02-13", "close": 8299.585, "norm": 1.12888192}, {"date": "2026-02-24", "close": 8392.91, "norm": 1.14157567}, {"date": "2026-02-25", "close": 8527.559, "norm": 1.15989018}, {"date": "2026-02-26", "close": 8557.216, "norm": 1.16392403}, {"date": "2026-02-27", "close": 8658.45, "norm": 1.17769354}, {"date": "2026-03-02", "close": 8658.334, "norm": 1.17767776}, {"date": "2026-03-03", "close": 8281.614, "norm": 1.12643756}, {"date": "2026-03-04", "close": 8248.945, "norm": 1.12199403}, {"date": "2026-03-05", "close": 8309.171, "norm": 1.13018577}, {"date": "2026-03-06", "close": 8360.335, "norm": 1.13714493}, {"date": "2026-03-09", "close": 8279.481, "norm": 1.12614744}, {"date": "2026-03-10", "close": 8410.303, "norm": 1.14394141}, {"date": "2026-03-11", "close": 8403.33, "norm": 1.14299297}, {"date": "2026-03-12", "close": 8359.472, "norm": 1.13702755}, {"date": "2026-03-13", "close": 8239.798, "norm": 1.12074989}, {"date": "2026-03-16", "close": 8185.152, "norm": 1.11331712}, {"date": "2026-03-17", "close": 8016.026, "norm": 1.09031316}, {"date": "2026-03-18", "close": 8096.428, "norm": 1.10124918}, {"date": "2026-03-19", "close": 7877.09, "norm": 1.07141555}, {"date": "2026-03-20", "close": 7760.037, "norm": 1.05549439}, {"date": "2026-03-23", "close": 7440.745, "norm": 1.01206536}, {"date": "2026-03-24", "close": 7597.373, "norm": 1.03336938}, {"date": "2026-03-25", "close": 7767.665, "norm": 1.05653193}, {"date": "2026-03-26", "close": 7642.13, "norm": 1.03945708}, {"date": "2026-03-27", "close": 7737.614, "norm": 1.05244449}, {"date": "2026-03-30", "close": 7753.723, "norm": 1.05463558}, {"date": "2026-03-31", "close": 7617.326, "norm": 1.03608332}, {"date": "2026-04-01", "close": 7750.092, "norm": 1.05414171}, {"date": "2026-04-02", "close": 7605.293, "norm": 1.03444663}, {"date": "2026-04-03", "close": 7534.938, "norm": 1.02487718}, {"date": "2026-04-07", "close": 7571.111, "norm": 1.02979731}, {"date": "2026-04-08", "close": 7945.153, "norm": 1.08067326}, {"date": "2026-04-09", "close": 7898.633, "norm": 1.07434576}, {"date": "2026-04-10", "close": 7969.365, "norm": 1.08396649}, {"date": "2026-04-13", "close": 7967.697, "norm": 1.08373962}], "中证1000": [{"date": "2025-12-24", "close": 7506.381, "norm": 1.0}, {"date": "2025-12-25", "close": 7579.379, "norm": 1.00972479}, {"date": "2025-12-26", "close": 7605.53, "norm": 1.01320863}, {"date": "2025-12-29", "close": 7594.158, "norm": 1.01169365}, {"date": "2025-12-30", "close": 7597.299, "norm": 1.0121121}, {"date": "2025-12-31", "close": 7595.285, "norm": 1.01184379}, {"date": "2026-01-05", "close": 7753.88, "norm": 1.03297181}, {"date": "2026-01-06", "close": 7864.903, "norm": 1.0477623}, {"date": "2026-01-07", "close": 7906.42, "norm": 1.05329319}, {"date": "2026-01-08", "close": 7971.589, "norm": 1.061975}, {"date": "2026-01-09", "close": 8129.183, "norm": 1.08296968}, {"date": "2026-01-12", "close": 8357.011, "norm": 1.11332092}, {"date": "2026-01-13", "close": 8203.133, "norm": 1.09282129}, {"date": "2026-01-14", "close": 8257.172, "norm": 1.10002037}, {"date": "2026-01-15", "close": 8240.775, "norm": 1.09783596}, {"date": "2026-01-16", "close": 8232.729, "norm": 1.09676407}, {"date": "2026-01-19", "close": 8265.646, "norm": 1.10114928}, {"date": "2026-01-20", "close": 8182.752, "norm": 1.09010614}, {"date": "2026-01-21", "close": 8247.68, "norm": 1.09875585}, {"date": "2026-01-22", "close": 8309.346, "norm": 1.10697099}, {"date": "2026-01-23", "close": 8470.744, "norm": 1.12847243}, {"date": "2026-01-26", "close": 8365.435, "norm": 1.11444317}, {"date": "2026-01-27", "close": 8382.153, "norm": 1.11667034}, {"date": "2026-01-28", "close": 8399.794, "norm": 1.11902047}, {"date": "2026-01-29", "close": 8332.207, "norm": 1.11001653}, {"date": "2026-01-30", "close": 8254.86, "norm": 1.09971236}, {"date": "2026-02-02", "close": 7975.428, "norm": 1.06248644}, {"date": "2026-02-03", "close": 8209.101, "norm": 1.09361635}, {"date": "2026-02-04", "close": 8207.12, "norm": 1.09335244}, {"date": "2026-02-05", "close": 8068.077, "norm": 1.07482914}, {"date": "2026-02-06", "close": 8051.574, "norm": 1.07263061}, {"date": "2026-02-09", "close": 8233.778, "norm": 1.09690382}, {"date": "2026-02-10", "close": 8250.3, "norm": 1.09910488}, {"date": "2026-02-11", "close": 8239.513, "norm": 1.09766784}, {"date": "2026-02-12", "close": 8314.832, "norm": 1.10770183}, {"date": "2026-02-13", "close": 8204.829, "norm": 1.09304724}, {"date": "2026-02-24", "close": 8299.771, "norm": 1.10569541}, {"date": "2026-02-25", "close": 8426.331, "norm": 1.12255573}, {"date": "2026-02-26", "close": 8490.617, "norm": 1.13111991}, {"date": "2026-02-27", "close": 8560.843, "norm": 1.14047542}, {"date": "2026-03-02", "close": 8476.965, "norm": 1.12930119}, {"date": "2026-03-03", "close": 8142.454, "norm": 1.08473764}, {"date": "2026-03-04", "close": 8094.518, "norm": 1.07835161}, {"date": "2026-03-05", "close": 8171.119, "norm": 1.08855639}, {"date": "2026-03-06", "close": 8248.857, "norm": 1.09891265}, {"date": "2026-03-09", "close": 8203.869, "norm": 1.09291934}, {"date": "2026-03-10", "close": 8350.09, "norm": 1.1123989}, {"date": "2026-03-11", "close": 8363.526, "norm": 1.11418885}, {"date": "2026-03-12", "close": 8335.908, "norm": 1.11050958}, {"date": "2026-03-13", "close": 8214.293, "norm": 1.09430803}, {"date": "2026-03-16", "close": 8211.352, "norm": 1.09391623}, {"date": "2026-03-17", "close": 8019.857, "norm": 1.06840527}, {"date": "2026-03-18", "close": 8096.595, "norm": 1.0786283}, {"date": "2026-03-19", "close": 7909.234, "norm": 1.05366807}, {"date": "2026-03-20", "close": 7783.435, "norm": 1.03690913}, {"date": "2026-03-23", "close": 7409.107, "norm": 0.98704116}, {"date": "2026-03-24", "close": 7600.857, "norm": 1.01258609}, {"date": "2026-03-25", "close": 7751.181, "norm": 1.03261225}, {"date": "2026-03-26", "close": 7639.376, "norm": 1.01771759}, {"date": "2026-03-27", "close": 7746.313, "norm": 1.03196374}, {"date": "2026-03-30", "close": 7767.93, "norm": 1.03484356}, {"date": "2026-03-31", "close": 7619.85, "norm": 1.01511634}, {"date": "2026-04-01", "close": 7764.153, "norm": 1.03434038}, {"date": "2026-04-02", "close": 7623.417, "norm": 1.01559153}, {"date": "2026-04-03", "close": 7536.6, "norm": 1.00402577}, {"date": "2026-04-07", "close": 7606.017, "norm": 1.01327351}, {"date": "2026-04-08", "close": 7955.768, "norm": 1.05986733}, {"date": "2026-04-09", "close": 7921.447, "norm": 1.05529509}, {"date": "2026-04-10", "close": 7998.232, "norm": 1.06552439}, {"date": "2026-04-13", "close": 8025.572, "norm": 1.06916662}]};
+    let currentFund = 'SBFZ85';
+    let data = fundConfigs[currentFund].rows;
+    const chartModeByFund = { SBFZ85: 'compare', SBFZ95: 'compare' };
+    let filtered = [...data].sort((a, b) => b.valuation_date.localeCompare(a.valuation_date));
+    let sortKey = 'valuation_date';
+    let sortAsc = false;
+    let currentSeries = chartModeByFund[currentFund];
+
+    const fmtPct = v => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
+    const fmtNav = v => Number(v).toFixed(4);
+    const fmtMoney = v => Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function applyFundConfig() {
+      data = fundConfigs[currentFund].rows;
+      const m = fundConfigs[currentFund].metrics;
+      currentSeries = chartModeByFund[currentFund] || 'compare';
+      document.querySelectorAll('.pill').forEach(x => x.classList.toggle('active', x.dataset.series === currentSeries));
+      document.querySelector('.hero h1').textContent = `${fundConfigs[currentFund].name}，净值与收益率分析`;
+      document.querySelector('.hero .sub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}，可用于快速查看净值趋势、区间收益与回撤表现。`;
+      const metricValues = document.querySelectorAll('.grid-6 .metric-card .value');
+      const metricNotes = document.querySelectorAll('.grid-6 .metric-card .note');
+      metricValues[0].textContent = fmtNav(m.latest_nav); metricNotes[0].textContent = `截至 ${m.latest_date}`;
+      metricValues[1].textContent = fmtPct(m.since_inception); metricValues[1].className = `value ${m.since_inception >= 0 ? 'pos' : 'neg'}`;
+      metricValues[2].textContent = m.ytd === undefined ? '—' : fmtPct(m.ytd); metricValues[2].className = `value ${(m.ytd || 0) >= 0 ? 'pos' : 'neg'}`; metricNotes[2].textContent = m.ytd === undefined ? '本tab未单独计算YTD' : '样本区间估算';
+      metricValues[3].textContent = fmtPct(m.last_20d); metricValues[3].className = `value ${m.last_20d >= 0 ? 'pos' : 'neg'}`;
+      metricValues[4].textContent = `-${(m.max_drawdown.value * 100).toFixed(2)}%`; metricValues[4].className = 'value neg'; metricNotes[4].textContent = `${m.max_drawdown.start.valuation_date} → ${m.max_drawdown.end.valuation_date}`;
+      metricValues[5].textContent = `${(m.annualized_vol * 100).toFixed(2)}%`;
+      const retVals = document.querySelectorAll('.ret-card .v');
+      [m.last_5d, m.last_20d, m.last_60d].forEach((val, i) => { retVals[i].textContent = fmtPct(val); retVals[i].className = `v ${val >= 0 ? 'pos' : 'neg'}`; });
+      const statVals = document.querySelectorAll('.stat-item .v');
+      statVals[0].innerHTML = `${fmtNav(m.max_nav.unit_nav)}<br><span class="sub">${m.max_nav.valuation_date}</span>`; statVals[0].className = 'v pos';
+      statVals[1].innerHTML = `${fmtNav(m.min_nav.unit_nav)}<br><span class="sub">${m.min_nav.valuation_date}</span>`; statVals[1].className = 'v neg';
+      statVals[2].textContent = `${m.max_drawdown.start.valuation_date} → ${m.max_drawdown.end.valuation_date}`;
+      statVals[3].textContent = `${fmtNav(m.max_drawdown.start.unit_nav)} → ${fmtNav(m.max_drawdown.end.unit_nav)}`;
+      statVals[4].textContent = data[0].valuation_date;
+      statVals[5].textContent = data[data.length - 1].valuation_date;
+      document.getElementById('chartDesc').textContent = currentSeries === 'compare'
+        ? '当前为归一化对比模式，基金与四条宽基指数均从同一起点出发，便于观察相对收益与超额表现。'
+        : '支持窗口自适应、鼠标悬停查看日期与当日单位净值，可切换观察单位净值与成立以来累计收益率。';
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#navTable tbody');
+      tbody.innerHTML = filtered.map(r => `
+        <tr>
+          <td>${r.valuation_date}</td>
+          <td class="${r.unit_nav >= 1 ? 'pos' : 'neg'}">${fmtNav(r.unit_nav)}</td>
+          <td class="${r.cum_return >= 0 ? 'pos' : 'neg'}">${fmtPct(r.cum_return)}</td>
+          <td>${fmtNav(r.accum_nav)}</td>
+          <td>${fmtMoney(r.nav_assets)}</td>
+          <td>${fmtMoney(r.paid_in_capital)}</td>
+          <td>${r.received_at}</td>
+          <td>${r.subject}</td>
+        </tr>
+      `).join('');
+    }
+
+    function sortBy(key, keepDirection = false) {
+      if (!keepDirection) {
+        if (sortKey === key) sortAsc = !sortAsc; else { sortKey = key; sortAsc = true; }
+      }
+      filtered.sort((a, b) => {
+        const va = a[key], vb = b[key];
+        if (typeof va === 'number' && typeof vb === 'number') return sortAsc ? va - vb : vb - va;
+        return sortAsc ? String(va).localeCompare(String(vb), 'zh-CN') : String(vb).localeCompare(String(va), 'zh-CN');
+      });
+      renderTable();
+    }
+
+    function drawChart() {
+      const canvas = document.getElementById('chart');
+      const shell = document.getElementById('chartShell');
+      const tooltip = document.getElementById('tooltip');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = shell.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const sorted = [...data].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+      const pad = { top: 22, right: 18, bottom: 34, left: 58 };
+      const w = rect.width, h = rect.height;
+      const fundSeriesAccessor = currentSeries === 'nav' ? (d => d.unit_nav) : currentSeries === 'return' ? (d => d.cum_return) : (d => d.unit_nav / sorted[0].unit_nav);
+      const benchmarkSeries = ['上证指数', '沪深300', '中证500', '中证1000'].map(name => (benchmarks[name] || []).map(item => ({ ...item, name }))).flat().filter(item => sorted.some(s => s.valuation_date === item.date));
+      const values = [...sorted.map(fundSeriesAccessor), ...(currentSeries === 'compare' ? benchmarkSeries.map(d => d.norm) : [])];
+      const min = Math.min(...values), max = Math.max(...values);
+      const range = (max - min) || 1;
+      const x = i => pad.left + (i * (w - pad.left - pad.right) / Math.max(sorted.length - 1, 1));
+      const y = v => pad.top + (max - v) * (h - pad.top - pad.bottom) / range;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 5; i++) {
+        const yy = pad.top + i * (h - pad.top - pad.bottom) / 4;
+        ctx.strokeStyle = '#eef2f7';
+        ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(w - pad.right, yy); ctx.stroke();
+        const labelVal = max - i * range / 4;
+        const axisLabel = currentSeries === 'nav' ? fmtNav(labelVal) : currentSeries === 'return' ? fmtPct(labelVal) : `${(labelVal * 100).toFixed(1)}%`;
+        ctx.fillStyle = '#6b7280'; ctx.font = '12px sans-serif'; ctx.fillText(axisLabel, 6, yy + 4);
+      }
+
+      const indexMeta = [
+        { name: '上证指数', color: 'rgba(99,102,241,.55)' },
+        { name: '沪深300', color: 'rgba(16,185,129,.55)' },
+        { name: '中证500', color: 'rgba(245,158,11,.55)' },
+        { name: '中证1000', color: 'rgba(236,72,153,.55)' },
+      ];
+      indexMeta.forEach(meta => {
+        if (currentSeries !== 'compare') return;
+        const series = (benchmarks[meta.name] || []).filter(d => sorted.some(s => s.valuation_date === d.date));
+        if (!series.length) return;
+        ctx.beginPath();
+        series.forEach((d, i) => {
+          const idx = sorted.findIndex(s => s.valuation_date === d.date);
+          if (idx < 0) return;
+          const px = x(idx), py = y(d.norm);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.lineWidth = 1.4; ctx.setLineDash([5, 5]); ctx.strokeStyle = meta.color; ctx.stroke(); ctx.setLineDash([]);
+      });
+
+      const stroke = currentSeries === 'nav' ? '#2563eb' : currentSeries === 'return' ? '#f59e0b' : '#2563eb';
+      const fill = currentSeries === 'nav' ? 'rgba(37,99,235,.12)' : currentSeries === 'return' ? 'rgba(245,158,11,.14)' : 'rgba(37,99,235,.10)';
+      ctx.beginPath();
+      sorted.forEach((d, i) => {
+        const px = x(i), py = y(fundSeriesAccessor(d));
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      });
+      ctx.lineWidth = 2.5; ctx.strokeStyle = stroke; ctx.stroke();
+      ctx.lineTo(x(sorted.length - 1), h - pad.bottom); ctx.lineTo(x(0), h - pad.bottom); ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+
+      const points = sorted.map((d, i) => ({ x: x(i), y: y(fundSeriesAccessor(d)), row: d }));
+      points.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2); ctx.fillStyle = stroke; ctx.fill(); });
+      canvas._points = points;
+      canvas._drawState = { dpr, pad, h, w, sorted };
+
+      if (!canvas._boundHover) {
+        canvas.addEventListener('mousemove', e => {
+          const r = canvas.getBoundingClientRect();
+          const mx = e.clientX - r.left, my = e.clientY - r.top;
+          const livePoints = canvas._points || [];
+          let nearest = -1, dist = Infinity;
+          livePoints.forEach((p, idx) => { const d = Math.hypot(p.x - mx, p.y - my); if (d < dist) { dist = d; nearest = idx; } });
+          drawChart();
+          const p = (canvas._points || [])[nearest];
+          const state = canvas._drawState;
+          if (!p || !state) return;
+          const value = currentSeries === 'nav' ? fmtNav(p.row.unit_nav) : currentSeries === 'return' ? fmtPct(p.row.cum_return) : fmtNav(p.row.unit_nav / state.sorted[0].unit_nav);
+          const label = currentSeries === 'nav' ? '单位净值' : currentSeries === 'return' ? '累计收益率' : '基金归一化净值';
+          const ctx2 = canvas.getContext('2d');
+          ctx2.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+          ctx2.strokeStyle = 'rgba(17,24,39,.12)';
+          ctx2.beginPath(); ctx2.moveTo(p.x, state.pad.top); ctx2.lineTo(p.x, state.h - state.pad.bottom); ctx2.stroke();
+          ctx2.beginPath(); ctx2.arc(p.x, p.y, 5.5, 0, Math.PI * 2); ctx2.fillStyle = '#111827'; ctx2.fill();
+          tooltip.innerHTML = `<div class="t1">${p.row.valuation_date}</div><div>${label}：${value}</div>`;
+          tooltip.style.opacity = 1;
+          const margin = 12, ttWidth = tooltip.offsetWidth || 140, ttHeight = tooltip.offsetHeight || 48;
+          let left = p.x - ttWidth / 2, top = p.y - ttHeight - 14;
+          if (left < margin) left = margin;
+          if (left + ttWidth > state.w - margin) left = state.w - margin - ttWidth;
+          if (top < margin) top = p.y + 14;
+          if (top + ttHeight > state.h - margin) top = state.h - margin - ttHeight;
+          tooltip.style.left = `${left}px`; tooltip.style.top = `${top}px`;
+        });
+        canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; drawChart(); });
+        canvas._boundHover = true;
+      }
+    }
+
+    document.querySelectorAll('th[data-key]').forEach(th => th.addEventListener('click', () => sortBy(th.dataset.key)));
+    document.getElementById('search').addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      filtered = data.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q)));
+      sortBy(sortKey, true);
+    });
+    document.querySelectorAll('.pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        currentSeries = btn.dataset.series;
+        chartModeByFund[currentFund] = currentSeries;
+        document.getElementById('tooltip').style.opacity = 0;
+        document.getElementById('chartDesc').textContent = currentSeries === 'compare' ? '当前为归一化对比模式，基金与四条宽基指数均从同一起点出发，便于观察相对收益与超额表现。' : '支持窗口自适应、鼠标悬停查看日期与当日单位净值，可切换观察单位净值与成立以来累计收益率。';
+        drawChart();
+      });
+    });
+    document.querySelectorAll('.fund-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.fund-tab').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        currentFund = btn.dataset.fund;
+        applyFundConfig();
+        filtered = [...data].sort((a, b) => b.valuation_date.localeCompare(a.valuation_date));
+        renderTable();
+        drawChart();
+      });
+    });
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const rows = fundConfigs[currentFund].rows;
+      const headers = ['估值日期','单位净值','累计收益率','累计单位净值','资产净值','实收资本','收件时间','邮件标题'];
+      const esc = s => `"${String(s).replaceAll('"', '""')}"`;
+      const csv = [headers.join(','), ...rows.map(r => [r.valuation_date, r.unit_nav, r.cum_return, r.accum_nav, r.nav_assets, r.paid_in_capital, esc(r.received_at), esc(r.subject)].join(','))].join('\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${currentFund}_nav_data.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    });
+
+    applyFundConfig();
+    renderTable();
+    drawChart();
+    window.addEventListener('resize', drawChart);
+  </script>
+</body>
+</html>
