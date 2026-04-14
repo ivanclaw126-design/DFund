@@ -133,9 +133,9 @@
 
     async function loadData() {
       const [f85, f95, idx] = await Promise.all([
-        fetchJson(['data/sbfz85_nav_enriched.json', '/DFund/data/sbfz85_nav_enriched.json']),
-        fetchJson(['data/sbfz95_nav_enriched.json', '/DFund/data/sbfz95_nav_enriched.json']),
-        fetchJson(['data/benchmark_indices.json', '/DFund/data/benchmark_indices.json']),
+        fetchJson(['data/sbfz85_nav_enriched.json', '/data/sbfz85_nav_enriched.json']),
+        fetchJson(['data/sbfz95_nav_enriched.json', '/data/sbfz95_nav_enriched.json']),
+        fetchJson(['data/benchmark_indices.json', '/data/benchmark_indices.json']),
       ]);
       fundConfigs = {
         SBFZ85: { name: '衍盛天璇CTA一号私募证券投资基金', code: 'SBFZ85', ...f85 },
