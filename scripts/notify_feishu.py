@@ -11,7 +11,6 @@ TARGET = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
 
 def send_feishu(text: str):
     try:
-        # 使用 openclaw message send 命令
         result = subprocess.run(
             ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
             capture_output=True,
@@ -19,14 +18,15 @@ def send_feishu(text: str):
             timeout=30
         )
         if result.returncode == 0:
-            print(f'[OK] sent to {TARGET}')
+            print(f'[OK] sent to {TARGET} via openclaw message send')
             return True
-        else:
-            print(f'[ERR] openclaw message: {result.stderr}')
+        err = (result.stderr or result.stdout or '').strip()
+        print(f'[ERR] openclaw message send: {err}')
     except FileNotFoundError:
         print('[ERR] openclaw command not found')
     except Exception as e:
         print(f'[ERR] failed: {e}')
+
     print(f'[LOG] Would send: {text[:100]}')
     return False
 
@@ -36,9 +36,11 @@ def success_message():
     f95 = json.loads((DATA_DIR / 'sbfz95_nav_enriched.json').read_text(encoding='utf-8'))
     r85 = f85['rows'][-1]
     r95 = f95['rows'][-1]
+    cta_principal = 640000
+    cta_value = round(cta_principal * r85['unit_nav'])
     return (
         '📈 DFund 已完成今日更新\n\n'
-        f'SBFZ85 (衍盛天璇 CTA 一号): {r85["valuation_date"]}，单位净值 {r85["unit_nav"]:.4f}\n'
+        f'SBFZ85 (衍盛天璇 CTA 一号): {r85["valuation_date"]}，单位净值 {r85["unit_nav"]:.4f}，64万本金当前约 {cta_value:,} 元\n'
         f'SBFZ95 (衍盛开阳多策略混合): {r95["valuation_date"]}，单位净值 {r95["unit_nav"]:.4f}'
     )
 
