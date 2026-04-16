@@ -176,6 +176,8 @@
       document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
       document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
       document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
+      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
+      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
       document.getElementById('metricGrid').innerHTML = `
         <div class="metric-card"><div class="label">最新单位净值</div><div class="value">${fmtNav(m.latest_nav)}</div><div class="note">截至 ${m.latest_date}</div></div>
         <div class="metric-card"><div class="label">成立以来收益</div><div class="value ${m.since_inception >= 0 ? 'pos' : 'neg'}">${fmtPct(m.since_inception)}</div><div class="note">相对首个样本日</div></div>
