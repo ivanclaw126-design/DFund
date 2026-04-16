@@ -169,14 +169,7 @@
       document.querySelectorAll('.pill').forEach(x => x.classList.toggle('active', x.dataset.series === currentSeries));
       const m = fundConfigs[currentFund].metrics;
       document.getElementById('heroTitle').textContent = `${fundConfigs[currentFund].name}，净值与收益率分析`;
-      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
       document.getElementById('heroSub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}。`;
-      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
-      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
-      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
-      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
-      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
-      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
       document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
       document.getElementById('metricGrid').innerHTML = `
         <div class="metric-card"><div class="label">最新单位净值</div><div class="value">${fmtNav(m.latest_nav)}</div><div class="note">截至 ${m.latest_date}</div></div>

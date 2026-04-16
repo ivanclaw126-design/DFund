@@ -28,28 +28,15 @@ INDEX_MAP = {
 FEISHU_CHAT = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
 
 
-def send_feishu_alert(message: str):
-    try:
-        subprocess.run(['python3', '- <<PY\nprint(1)\nPY'], check=False)
-    except Exception:
-        pass
-    try:
-        subprocess.run([
-            'python3', '-c',
-            'from pathlib import Path; print("NOOP")'
-        ], check=False)
-    except Exception:
-        pass
-    try:
-        subprocess.run(['python3', '-c',
-                        'import os; print("feishu alert placeholder")'], check=False)
-    except Exception:
-        pass
-
-
 def notify_failure(message: str):
-    # Placeholder: use OpenClaw messaging if available at runtime, otherwise print.
     print(f'[ALERT] {message}')
+    try:
+        subprocess.run(
+            ['python3', str(ROOT / 'scripts' / 'notify_feishu.py'), 'failure', message],
+            capture_output=True, text=True, timeout=30,
+        )
+    except Exception as e:
+        print(f'[WARN] failed to send feishu alert: {e}')
 
 
 def fetch_mail_rows(code: str, subject: str):
@@ -234,7 +221,11 @@ def main():
     if '</body>' in text:
         if 'lastUpdatedText' not in text:
             text = text.replace('<div class="sub" id="heroSub">正在加载基金与指数数据...</div>', '<div class="sub" id="heroSub">正在加载基金与指数数据...</div><div class="sub" id="lastUpdatedText" style="margin-top:8px; color:#6b7280;">最后更新时间：加载中</div>')
-        text = text.replace("      document.getElementById('heroSub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}。`;", "      document.getElementById('heroSub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}。`;\n      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;")
+        # Remove any previously injected lastUpdatedText JS lines to keep it idempotent
+        text = re.sub(r"\n\s*document\.getElementById\('lastUpdatedText'\)\.textContent\s*=.*?;", '', text)
+        hero_sub_line = "      document.getElementById('heroSub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}。`;"
+        timestamp_line = "      document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;"
+        text = text.replace(hero_sub_line, hero_sub_line + '\n' + timestamp_line)
     index_html.write_text(text, encoding='utf-8')
     print('updated data')
 
