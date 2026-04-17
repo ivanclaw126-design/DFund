@@ -752,6 +752,47 @@
       </section>
     </div>
 
+    <!-- Analytics Grid 2: Scatter + Rolling -->
+    <div class="analytics-grid">
+      <!-- Scatter Plot -->
+      <section class="analytics-card">
+        <h3>收益相关性散点图</h3>
+        <div class="card-sub">每日基金收益 vs 基准收益。回归线显示相关性强度。</div>
+        <div class="regime-selector">
+          <select id="scatterBenchmark">
+            <option value="沪深300">沪深300</option>
+            <option value="上证指数">上证指数</option>
+            <option value="中证500">中证500</option>
+            <option value="中证1000">中证1000</option>
+          </select>
+        </div>
+        <div class="analytics-shell" id="scatterShell">
+          <canvas id="scatterChart"></canvas>
+          <div class="analytics-tooltip" id="scatterTooltip"></div>
+        </div>
+        <div class="analytics-sample-note" id="scatterNote"></div>
+      </section>
+
+      <!-- Rolling Beta/Correlation -->
+      <section class="analytics-card">
+        <h3>滚动相关性指标</h3>
+        <div class="card-sub">20日滚动 Beta 和相关性，观察基金与股市依赖关系的稳定性。</div>
+        <div class="regime-selector">
+          <select id="rollingBenchmark">
+            <option value="沪深300">沪深300</option>
+            <option value="上证指数">上证指数</option>
+            <option value="中证500">中证500</option>
+            <option value="中证1000">中证1000</option>
+          </select>
+        </div>
+        <div class="analytics-shell" id="rollingShell">
+          <canvas id="rollingChart"></canvas>
+          <div class="analytics-tooltip" id="rollingTooltip"></div>
+        </div>
+        <div class="analytics-sample-note" id="rollingNote"></div>
+      </section>
+    </div>
+
     <!-- Table -->
     <section class="table-section">
       <div class="table-header">
@@ -831,6 +872,8 @@
       drawChart();
       drawUnderwaterChart();
       renderRegimePanel();
+      drawScatterPlot();
+      drawRollingChart();
     }
 
     function renderFundTabs() {
@@ -1090,6 +1133,8 @@
       drawChart();
       drawUnderwaterChart();
       renderRegimePanel();
+      drawScatterPlot();
+      drawRollingChart();
     });
 
     // ─── Underwater Chart ───
@@ -1456,6 +1501,461 @@
       renderRegimePanel();
     });
 
+    // ─── Scatter Plot ───
+    let scatterBenchmark = '沪深300';
+
+    function calculateDailyReturns(rows, benchmarkName) {
+      const sortedRows = [...rows].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+      const benchmarkData = (benchmarks[benchmarkName] || []);
+
+      // Calculate fund daily returns
+      const fundReturns = sortedRows.map((row, i) => {
+        if (i === 0) return null;
+        const prevNav = sortedRows[i - 1].unit_nav;
+        return {
+          date: row.valuation_date,
+          fundReturn: (row.unit_nav - prevNav) / prevNav
+        };
+      }).filter(d => d !== null);
+
+      // Match with benchmark returns
+      const matched = fundReturns.map(fr => {
+        const benchIdx = benchmarkData.findIndex(b => b.date === fr.date);
+        if (benchIdx <= 0) return null;
+        const prevBenchNorm = benchmarkData[benchIdx - 1].norm;
+        const benchNorm = benchmarkData[benchIdx].norm;
+        const benchReturn = (benchNorm - prevBenchNorm) / prevBenchNorm;
+        return {
+          date: fr.date,
+          fundReturn: fr.fundReturn,
+          benchReturn: benchReturn
+        };
+      }).filter(d => d !== null);
+
+      return matched;
+    }
+
+    function linearRegression(data) {
+      // data: [{fundReturn, benchReturn}]
+      const n = data.length;
+      if (n < 2) return { slope: 0, intercept: 0, r2: 0 };
+
+      const sumX = data.reduce((s, d) => s + d.benchReturn, 0);
+      const sumY = data.reduce((s, d) => s + d.fundReturn, 0);
+      const sumXY = data.reduce((s, d) => s + d.benchReturn * d.fundReturn, 0);
+      const sumX2 = data.reduce((s, d) => s + d.benchReturn * d.benchReturn, 0);
+      const sumY2 = data.reduce((s, d) => s + d.fundReturn * d.fundReturn, 0);
+
+      const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX) || 0;
+      const intercept = (sumY - slope * sumX) / n;
+
+      // R² calculation
+      const yMean = sumY / n;
+      const ssTotal = data.reduce((s, d) => s + (d.fundReturn - yMean) ** 2, 0);
+      const ssResidual = data.reduce((s, d) => {
+        const predicted = slope * d.benchReturn + intercept;
+        return s + (d.fundReturn - predicted) ** 2;
+      }, 0);
+      const r2 = ssTotal > 0 ? 1 - ssResidual / ssTotal : 0;
+
+      return { slope, intercept, r2 };
+    }
+
+    function drawScatterPlot() {
+      const canvas = document.getElementById('scatterChart');
+      const shell = document.getElementById('scatterShell');
+      const tooltip = document.getElementById('scatterTooltip');
+      const noteEl = document.getElementById('scatterNote');
+      if (!canvas || !shell) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const w = shell.clientWidth;
+      const h = shell.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const dateFiltered = getFilteredByDate(data);
+      if (dateFiltered.length < 5) {
+        ctx.fillStyle = '#f6f9fc';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#64748d';
+        ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('数据不足', w / 2, h / 2);
+        noteEl.textContent = '';
+        return;
+      }
+
+      const matched = calculateDailyReturns(dateFiltered, scatterBenchmark);
+      if (matched.length < 5) {
+        ctx.fillStyle = '#f6f9fc';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#64748d';
+        ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('基准数据不匹配', w / 2, h / 2);
+        noteEl.textContent = '';
+        return;
+      }
+
+      const pad = { top: 24, right: 16, bottom: 32, left: 54 };
+      const allReturns = matched.flatMap(d => [d.fundReturn, d.benchReturn]);
+      const minVal = Math.min(...allReturns, -0.02);
+      const maxVal = Math.max(...allReturns, 0.02);
+      const range = (maxVal - minVal) || 0.01;
+
+      const x = v => pad.left + (v - minVal) * (w - pad.left - pad.right) / range;
+      const y = v => pad.top + (maxVal - v) * (h - pad.top - pad.bottom) / range;
+      const zeroX = x(0);
+      const zeroY = y(0);
+
+      // Background
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#f6f9fc';
+      ctx.fillRect(0, 0, w, h);
+
+      // Quadrant fills
+      // Green (top-left): fund up, bench down = hedge success
+      ctx.fillStyle = 'rgba(22,163,74,0.06)';
+      ctx.fillRect(pad.left, pad.top, zeroX - pad.left, zeroY - pad.top);
+      // Red (bottom-right): fund down, bench up = wrong direction
+      ctx.fillStyle = 'rgba(220,38,38,0.06)';
+      ctx.fillRect(zeroX, zeroY, w - pad.right - zeroX, h - pad.bottom - zeroY);
+      // Blue (top-right): both up = win-win
+      ctx.fillStyle = 'rgba(59,130,246,0.06)';
+      ctx.fillRect(zeroX, pad.top, w - pad.right - zeroX, zeroY - pad.top);
+      // Orange (bottom-left): both down = both lose
+      ctx.fillStyle = 'rgba(245,158,11,0.06)';
+      ctx.fillRect(pad.left, zeroY, zeroX - pad.left, h - pad.bottom - zeroY);
+
+      // Grid lines
+      ctx.strokeStyle = '#e5edf5';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const val = minVal + i * range / 4;
+        const xx = x(val), yy = y(val);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, yy);
+        ctx.lineTo(w - pad.right, yy);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(xx, pad.top);
+        ctx.lineTo(xx, h - pad.bottom);
+        ctx.stroke();
+        // Labels
+        const pctLabel = `${(val * 100).toFixed(1)}%`;
+        ctx.fillStyle = '#64748d';
+        ctx.font = '10px "Source Code Pro", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(pctLabel, pad.left - 8, yy + 4);
+        ctx.textAlign = 'center';
+        ctx.fillText(pctLabel, xx, h - pad.bottom + 12);
+      }
+
+      // Zero lines (axes)
+      ctx.strokeStyle = '#061b31';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, zeroY);
+      ctx.lineTo(w - pad.right, zeroY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(zeroX, pad.top);
+      ctx.lineTo(zeroX, h - pad.bottom);
+      ctx.stroke();
+
+      // Regression line
+      const { slope, intercept, r2 } = linearRegression(matched);
+      const regX1 = minVal, regX2 = maxVal;
+      const regY1 = slope * regX1 + intercept;
+      const regY2 = slope * regX2 + intercept;
+      ctx.strokeStyle = '#533afd';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x(regX1), y(regY1));
+      ctx.lineTo(x(regX2), y(regY2));
+      ctx.stroke();
+
+      // R² annotation
+      ctx.fillStyle = '#533afd';
+      ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`R² = ${r2.toFixed(3)}`, pad.left + 8, pad.top + 16);
+      ctx.fillText(`β = ${slope.toFixed(2)}`, pad.left + 8, pad.top + 30);
+
+      // Scatter dots
+      const points = matched.map(d => ({
+        x: x(d.benchReturn),
+        y: y(d.fundReturn),
+        row: d
+      }));
+      points.forEach(p => {
+        // Color by quadrant
+        let color = '#533afd';
+        if (p.row.fundReturn > 0 && p.row.benchReturn < 0) color = '#16a34a'; // hedge success
+        else if (p.row.fundReturn < 0 && p.row.benchReturn > 0) color = '#dc2626'; // wrong direction
+        else if (p.row.fundReturn > 0 && p.row.benchReturn > 0) color = '#3b82f6'; // win-win
+        else if (p.row.fundReturn < 0 && p.row.benchReturn < 0) color = '#f59e0b'; // both lose
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      });
+
+      canvas._scPoints = points;
+      canvas._scBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      canvas._scDrawState = { dpr, pad, h, w };
+
+      // Hover handler
+      if (!canvas._scBoundHover) {
+        canvas.addEventListener('mousemove', e => {
+          const r = canvas.getBoundingClientRect();
+          const mx = e.clientX - r.left, my = e.clientY - r.top;
+          const pts = canvas._scPoints || [];
+          let nearest = -1, dist = Infinity;
+          pts.forEach((p, idx) => { const d = Math.hypot(p.x - mx, p.y - my); if (d < dist) { dist = d; nearest = idx; } });
+          if (dist > 20) { tooltip.style.opacity = 0; return; }
+
+          const ctx2 = canvas.getContext('2d');
+          const base = canvas._scBase;
+          if (base) ctx2.putImageData(base, 0, 0);
+          const p = pts[nearest];
+          const state = canvas._scDrawState;
+          if (!p || !state) return;
+
+          ctx2.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+          ctx2.beginPath();
+          ctx2.arc(p.x, p.y, 5, 0, Math.PI * 2);
+          ctx2.fillStyle = '#061b31';
+          ctx2.fill();
+
+          tooltip.innerHTML = `<div class="t1">${p.row.date}</div><div>基金：${(p.row.fundReturn * 100).toFixed(2)}%</div><div>基准：${(p.row.benchReturn * 100).toFixed(2)}%</div>`;
+          tooltip.style.opacity = 1;
+          const margin = 10, ttWidth = tooltip.offsetWidth || 120, ttHeight = tooltip.offsetHeight || 60;
+          let left = p.x + 10, top = p.y - ttHeight / 2;
+          if (left + ttWidth > state.w - margin) left = p.x - ttWidth - 10;
+          if (top < margin) top = margin;
+          if (top + ttHeight > state.h - margin) top = state.h - margin - ttHeight;
+          tooltip.style.left = `${left}px`;
+          tooltip.style.top = `${top}px`;
+        });
+        canvas.addEventListener('mouseleave', () => {
+          if (canvas._scBase) canvas.getContext('2d').putImageData(canvas._scBase, 0, 0);
+          tooltip.style.opacity = 0;
+        });
+        canvas._scBoundHover = true;
+      }
+
+      noteEl.textContent = matched.length < 100 ? `${matched.length} 个交易日（样本有限）` : `${matched.length} 个交易日`;
+    }
+
+    // ─── Rolling Beta/Correlation ───
+    let rollingBenchmark = '沪深300';
+    const ROLLING_WINDOW = 20;
+
+    function calculateRollingBetaCorrelation(rows, benchmarkName) {
+      const matched = calculateDailyReturns(rows, benchmarkName);
+      if (matched.length < ROLLING_WINDOW) return [];
+
+      const rolling = [];
+      for (let i = ROLLING_WINDOW; i < matched.length; i++) {
+        const windowData = matched.slice(i - ROLLING_WINDOW, i);
+
+        // Beta = Cov(fund, bench) / Var(bench)
+        const benchMean = windowData.reduce((s, d) => s + d.benchReturn, 0) / ROLLING_WINDOW;
+        const fundMean = windowData.reduce((s, d) => s + d.fundReturn, 0) / ROLLING_WINDOW;
+        const cov = windowData.reduce((s, d) => s + (d.benchReturn - benchMean) * (d.fundReturn - fundMean), 0) / ROLLING_WINDOW;
+        const benchVar = windowData.reduce((s, d) => s + (d.benchReturn - benchMean) ** 2, 0) / ROLLING_WINDOW;
+        const beta = benchVar > 0 ? cov / benchVar : 0;
+
+        // Correlation
+        const fundVar = windowData.reduce((s, d) => s + (d.fundReturn - fundMean) ** 2, 0) / ROLLING_WINDOW;
+        const correlation = (benchVar > 0 && fundVar > 0) ? cov / Math.sqrt(benchVar * fundVar) : 0;
+
+        rolling.push({
+          date: matched[i].date,
+          beta,
+          correlation
+        });
+      }
+      return rolling;
+    }
+
+    function drawRollingChart() {
+      const canvas = document.getElementById('rollingChart');
+      const shell = document.getElementById('rollingShell');
+      const tooltip = document.getElementById('rollingTooltip');
+      const noteEl = document.getElementById('rollingNote');
+      if (!canvas || !shell) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const w = shell.clientWidth;
+      const h = shell.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const dateFiltered = getFilteredByDate(data);
+      const rolling = calculateRollingBetaCorrelation(dateFiltered, rollingBenchmark);
+
+      if (rolling.length < 2) {
+        ctx.fillStyle = '#f6f9fc';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#64748d';
+        ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('数据不足（需 ≥ 20 个交易日）', w / 2, h / 2);
+        noteEl.textContent = '';
+        return;
+      }
+
+      const pad = { top: 24, right: 16, bottom: 32, left: 54 };
+      const minBeta = Math.min(...rolling.map(d => d.beta), -0.5);
+      const maxBeta = Math.max(...rolling.map(d => d.beta), 1.5);
+      const betaRange = maxBeta - minBeta || 1;
+      const corrRange = 2; // correlation from -1 to 1
+
+      const x = i => pad.left + (i * (w - pad.left - pad.right) / Math.max(rolling.length - 1, 1));
+      const yBeta = v => pad.top + (maxBeta - v) * (h - pad.top - pad.bottom) / betaRange;
+      const yCorr = v => pad.top + (1 - v) * (h - pad.top - pad.bottom) / corrRange;
+
+      // Background
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#f6f9fc';
+      ctx.fillRect(0, 0, w, h);
+
+      // Grid lines (beta scale)
+      for (let i = 0; i <= 4; i++) {
+        const betaVal = minBeta + i * betaRange / 4;
+        const yy = yBeta(betaVal);
+        ctx.strokeStyle = '#e5edf5';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, yy);
+        ctx.lineTo(w - pad.right, yy);
+        ctx.stroke();
+        ctx.fillStyle = '#64748d';
+        ctx.font = '10px "Source Code Pro", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(betaVal.toFixed(2), pad.left - 8, yy + 4);
+      }
+
+      // Zero line for beta
+      const zeroBetaY = yBeta(0);
+      if (zeroBetaY >= pad.top && zeroBetaY <= h - pad.bottom) {
+        ctx.strokeStyle = 'rgba(6,27,49,0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, zeroBetaY);
+        ctx.lineTo(w - pad.right, zeroBetaY);
+        ctx.stroke();
+      }
+
+      // Rolling Beta line (purple)
+      ctx.beginPath();
+      rolling.forEach((d, i) => {
+        const px = x(i), py = yBeta(d.beta);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#533afd';
+      ctx.stroke();
+
+      // Rolling Correlation line (orange)
+      ctx.beginPath();
+      rolling.forEach((d, i) => {
+        const px = x(i), py = yCorr(d.correlation);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.stroke();
+
+      // Legend
+      ctx.fillStyle = '#533afd';
+      ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('β (Beta)', pad.left + 8, pad.top + 14);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText('ρ (Corr)', pad.left + 60, pad.top + 14);
+
+      // Gray out first 19 days region
+      const grayWidth = (ROLLING_WINDOW - 1) * (w - pad.left - pad.right) / (rolling.length + ROLLING_WINDOW - 1);
+      ctx.fillStyle = 'rgba(100,116,139,0.08)';
+      ctx.fillRect(pad.left, pad.top, Math.min(grayWidth, w - pad.left - pad.right), h - pad.top - pad.bottom);
+
+      // Store points for hover
+      const points = rolling.map((d, i) => ({ x: x(i), yBeta: yBeta(d.beta), yCorr: yCorr(d.correlation), row: d }));
+      canvas._roPoints = points;
+      canvas._roBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      canvas._roDrawState = { dpr, pad, h, w, yBeta, yCorr };
+
+      // Hover handler
+      if (!canvas._roBoundHover) {
+        canvas.addEventListener('mousemove', e => {
+          const r = canvas.getBoundingClientRect();
+          const mx = e.clientX - r.left;
+          const pts = canvas._roPoints || [];
+          let nearest = -1, dist = Infinity;
+          pts.forEach((p, idx) => { const d = Math.abs(p.x - mx); if (d < dist) { dist = d; nearest = idx; } });
+          if (dist > 15) { tooltip.style.opacity = 0; return; }
+
+          const ctx2 = canvas.getContext('2d');
+          const base = canvas._roBase;
+          if (base) ctx2.putImageData(base, 0, 0);
+          const p = pts[nearest];
+          const state = canvas._roDrawState;
+          if (!p || !state) return;
+
+          ctx2.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+          // Crosshair
+          ctx2.strokeStyle = 'rgba(6,27,49,0.15)';
+          ctx2.lineWidth = 1;
+          ctx2.beginPath();
+          ctx2.moveTo(p.x, state.pad.top);
+          ctx2.lineTo(p.x, state.h - state.pad.bottom);
+          ctx2.stroke();
+
+          tooltip.innerHTML = `<div class="t1">${p.row.date}</div><div>β：${p.row.beta.toFixed(3)}</div><div>ρ：${p.row.correlation.toFixed(3)}</div>`;
+          tooltip.style.opacity = 1;
+          const margin = 10, ttWidth = tooltip.offsetWidth || 100, ttHeight = tooltip.offsetHeight || 60;
+          let left = p.x + 10, top = p.yBeta - ttHeight / 2;
+          if (left + ttWidth > state.w - margin) left = p.x - ttWidth - 10;
+          if (top < margin) top = margin;
+          if (top + ttHeight > state.h - margin) top = state.h - margin - ttHeight;
+          tooltip.style.left = `${left}px`;
+          tooltip.style.top = `${top}px`;
+        });
+        canvas.addEventListener('mouseleave', () => {
+          if (canvas._roBase) canvas.getContext('2d').putImageData(canvas._roBase, 0, 0);
+          tooltip.style.opacity = 0;
+        });
+        canvas._roBoundHover = true;
+      }
+
+      noteEl.textContent = `${rolling.length} 个有效窗口点（前 ${ROLLING_WINDOW} 日灰化）`;
+    }
+
+    // Benchmark selectors
+    document.getElementById('scatterBenchmark').addEventListener('change', e => {
+      scatterBenchmark = e.target.value;
+      drawScatterPlot();
+    });
+    document.getElementById('rollingBenchmark').addEventListener('change', e => {
+      rollingBenchmark = e.target.value;
+      drawRollingChart();
+    });
+
     // ─── Date Range Selector ───
     function getFilteredByDate(rows) {
       if (dateRange.preset === 'all' && !dateRange.from && !dateRange.to) return rows;
@@ -1489,6 +1989,8 @@
       drawChart();
       drawUnderwaterChart();
       renderRegimePanel();
+      drawScatterPlot();
+      drawRollingChart();
     }
 
     document.querySelectorAll('#rangeBar .pill').forEach(btn => btn.addEventListener('click', () => applyDateRange(btn.dataset.range)));
