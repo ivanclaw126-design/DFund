@@ -499,6 +499,63 @@
     }
     .range-bar .range-reset:hover { background: var(--purple-soft); }
 
+    /* ─── Analytics Grid ─── */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .analytics-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .analytics-card h3 {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--heading);
+      letter-spacing: -0.32px;
+      margin-bottom: 4px;
+    }
+    .analytics-card .card-sub {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--body);
+      margin-bottom: 16px;
+    }
+    .analytics-shell {
+      position: relative;
+      height: 320px;
+      border-radius: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .analytics-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: var(--heading);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 300;
+      min-width: 100px;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      box-shadow: var(--shadow-blue) 0px 14px 21px -14px, var(--shadow-black) 0px 8px 17px -8px;
+      z-index: 10;
+    }
+    .analytics-tooltip .t1 { font-weight: 500; margin-bottom: 3px; }
+    .analytics-sample-note {
+      font-size: 11px;
+      color: var(--body);
+      margin-top: 8px;
+      font-weight: 300;
+    }
+
     /* ─── Responsive ─── */
     @media (max-width: 1200px) {
       .metrics-grid { grid-template-columns: repeat(3, 1fr); }
@@ -506,10 +563,13 @@
     @media (max-width: 980px) {
       .main-layout { grid-template-columns: 1fr; }
       .ret-grid { grid-template-columns: repeat(2, 1fr); }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .analytics-shell { height: 280px; }
       .hero h1 { font-size: 28px; letter-spacing: -0.56px; }
     }
     @media (max-width: 640px) {
       .metrics-grid, .ret-grid { grid-template-columns: 1fr; }
+      .analytics-shell { height: 260px; }
       .page { padding: 24px 16px 60px; }
       .hero { margin-bottom: 32px; }
       .hero h1 { font-size: 24px; letter-spacing: -0.48px; }
@@ -596,6 +656,29 @@
       </aside>
     </div>
 
+    <!-- Analytics Grid -->
+    <div class="analytics-grid">
+      <!-- Underwater Chart -->
+      <section class="analytics-card">
+        <h3>回撤深度图</h3>
+        <div class="card-sub">显示每日净值相对于历史高点的回撤幅度。</div>
+        <div class="analytics-shell" id="underwaterShell">
+          <canvas id="underwaterChart"></canvas>
+          <div class="analytics-tooltip" id="underwaterTooltip"></div>
+        </div>
+        <div class="analytics-sample-note" id="underwaterNote"></div>
+      </section>
+
+      <!-- Placeholder for Regime Panel (next module) -->
+      <section class="analytics-card" style="border-left: 3px solid #533afd;">
+        <h3 style="display:flex;align-items:center;gap:8px;">体制分析 <span style="font-size:10px;background:#533afd;color:#fff;padding:2px 6px;border-radius:3px;">核心洞察</span></h3>
+        <div class="card-sub">股市涨跌时，基金如何反应？</div>
+        <div class="analytics-shell" id="regimeShell" style="display:flex;align-items:center;justify-content:center;">
+          <span style="color:var(--body);font-size:13px;">模块开发中...</span>
+        </div>
+      </section>
+    </div>
+
     <!-- Table -->
     <section class="table-section">
       <div class="table-header">
@@ -673,6 +756,7 @@
       applyFundConfig();
       renderTable();
       drawChart();
+      drawUnderwaterChart();
     }
 
     function renderFundTabs() {
@@ -686,6 +770,7 @@
         applyFundConfig();
         renderTable();
         drawChart();
+        drawUnderwaterChart();
       }));
     }
 
@@ -927,7 +1012,263 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
     });
-    window.addEventListener('resize', drawChart);
+    window.addEventListener('resize', () => {
+      drawChart();
+      drawUnderwaterChart();
+    });
+
+    // ─── Underwater Chart ───
+    function calculateDrawdown(rows) {
+      // Calculate daily drawdown from peak NAV
+      const sorted = [...rows].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+      let peak = sorted[0].unit_nav;
+      let peakDate = sorted[0].valuation_date;
+      let maxDrawdown = { value: 0, startDate: null, endDate: null, peakDate: null };
+      let inDrawdown = false;
+      let drawdownStart = null;
+
+      const drawdowns = sorted.map((row, i) => {
+        if (row.unit_nav > peak) {
+          peak = row.unit_nav;
+          peakDate = row.valuation_date;
+          inDrawdown = false;
+          drawdownStart = null;
+        }
+        const dd = (row.unit_nav - peak) / peak; // negative value
+
+        // Track if entering drawdown
+        if (dd < 0 && !inDrawdown) {
+          inDrawdown = true;
+          drawdownStart = row.valuation_date;
+        }
+
+        // Track max drawdown
+        if (dd < maxDrawdown.value) {
+          maxDrawdown = {
+            value: dd,
+            startDate: drawdownStart || row.valuation_date,
+            endDate: row.valuation_date,
+            peakDate: peakDate,
+            peakNav: peak,
+            troughNav: row.unit_nav
+          };
+        }
+
+        return {
+          date: row.valuation_date,
+          drawdown: dd,
+          nav: row.unit_nav,
+          peak: peak,
+          peakDate: peakDate,
+          isMaxDD: row.valuation_date === maxDrawdown.endDate
+        };
+      });
+
+      // Mark recovery point (if recovered)
+      const lastDD = drawdowns[drawdowns.length - 1];
+      const recovered = lastDD.drawdown >= 0;
+      let recoveryPoint = null;
+      if (recovered && maxDrawdown.endDate) {
+        // Find the first point after maxDrawdown.endDate where drawdown >= 0
+        const afterMax = drawdowns.filter(d => d.date > maxDrawdown.endDate);
+        for (const d of afterMax) {
+          if (d.drawdown >= 0) {
+            recoveryPoint = d.date;
+            break;
+          }
+        }
+      }
+
+      return { drawdowns, maxDrawdown, recovered, recoveryPoint };
+    }
+
+    function drawUnderwaterChart() {
+      const canvas = document.getElementById('underwaterChart');
+      const shell = document.getElementById('underwaterShell');
+      const tooltip = document.getElementById('underwaterTooltip');
+      const noteEl = document.getElementById('underwaterNote');
+      if (!canvas || !shell) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const w = shell.clientWidth;
+      const h = shell.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const dateFiltered = getFilteredByDate(data);
+      if (dateFiltered.length < 2) {
+        ctx.fillStyle = '#f6f9fc';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#64748d';
+        ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('数据不足，无法绘制回撤图', w / 2, h / 2);
+        noteEl.textContent = '';
+        return;
+      }
+
+      const { drawdowns, maxDrawdown, recovered, recoveryPoint } = calculateDrawdown(dateFiltered);
+      const pad = { top: 24, right: 16, bottom: 32, left: 54 };
+      const minDD = Math.min(...drawdowns.map(d => d.drawdown), 0);
+      const maxDD = 0.02; // Slight buffer above 0
+      const range = (maxDD - minDD) || 0.01;
+
+      const x = i => pad.left + (i * (w - pad.left - pad.right) / Math.max(drawdowns.length - 1, 1));
+      const y = dd => pad.top + (maxDD - dd) * (h - pad.top - pad.bottom) / range;
+      const waterlineY = y(0);
+
+      // Background
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#f6f9fc';
+      ctx.fillRect(0, 0, w, h);
+
+      // Water above 0 (light)
+      ctx.fillStyle = 'rgba(59,130,246,0.04)';
+      ctx.fillRect(pad.left, pad.top, w - pad.left - pad.right, waterlineY - pad.top);
+
+      // Grid lines
+      for (let i = 0; i < 5; i++) {
+        const ddVal = minDD + i * range / 4;
+        const yy = y(ddVal);
+        ctx.strokeStyle = '#e5edf5';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, yy);
+        ctx.lineTo(w - pad.right, yy);
+        ctx.stroke();
+        const label = ddVal >= 0 ? '0%' : `${(ddVal * 100).toFixed(1)}%`;
+        ctx.fillStyle = '#64748d';
+        ctx.font = '10px "Source Code Pro", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(label, pad.left - 8, yy + 4);
+      }
+      ctx.textAlign = 'left';
+
+      // Waterline (0%)
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, waterlineY);
+      ctx.lineTo(w - pad.right, waterlineY);
+      ctx.stroke();
+
+      // Drawdown area fill (below waterline)
+      ctx.beginPath();
+      drawdowns.forEach((d, i) => {
+        const px = x(i), py = y(d.drawdown);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.lineTo(x(drawdowns.length - 1), waterlineY);
+      ctx.lineTo(x(0), waterlineY);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(59,130,246,0.12)';
+      ctx.fill();
+
+      // Drawdown stroke
+      ctx.beginPath();
+      drawdowns.forEach((d, i) => {
+        const px = x(i), py = y(d.drawdown);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#3b82f6';
+      ctx.stroke();
+
+      // Mark max drawdown point
+      if (maxDrawdown.endDate) {
+        const maxIdx = drawdowns.findIndex(d => d.date === maxDrawdown.endDate);
+        if (maxIdx >= 0) {
+          const mx = x(maxIdx), my = y(maxDrawdown.value);
+          ctx.beginPath();
+          ctx.arc(mx, my, 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#dc2626';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(mx, my, 3, 0, Math.PI * 2);
+          ctx.fillStyle = '#fff';
+          ctx.fill();
+        }
+      }
+
+      // Mark recovery point if exists
+      if (recoveryPoint) {
+        const recIdx = drawdowns.findIndex(d => d.date === recoveryPoint);
+        if (recIdx >= 0) {
+          const rx = x(recIdx), ry = y(0);
+          ctx.beginPath();
+          ctx.arc(rx, ry, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#16a34a';
+          ctx.fill();
+        }
+      }
+
+      // Store points for hover
+      const points = drawdowns.map((d, i) => ({ x: x(i), y: y(d.drawdown), row: d }));
+      canvas._uwPoints = points;
+      canvas._uwBase = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      canvas._uwDrawState = { dpr, pad, h, w, waterlineY, drawdowns };
+
+      // Hover handler
+      if (!canvas._uwBoundHover) {
+        canvas.addEventListener('mousemove', e => {
+          const r = canvas.getBoundingClientRect();
+          const mx = e.clientX - r.left, my = e.clientY - r.top;
+          const pts = canvas._uwPoints || [];
+          let nearest = -1, dist = Infinity;
+          pts.forEach((p, idx) => { const d = Math.hypot(p.x - mx, p.y - my); if (d < dist) { dist = d; nearest = idx; } });
+          const ctx2 = canvas.getContext('2d');
+          const base = canvas._uwBase;
+          if (base) ctx2.putImageData(base, 0, 0);
+          const p = pts[nearest];
+          const state = canvas._uwDrawState;
+          if (!p || !state) return;
+
+          ctx2.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+          // Crosshair
+          ctx2.strokeStyle = 'rgba(6,27,49,0.10)';
+          ctx2.lineWidth = 1;
+          ctx2.beginPath();
+          ctx2.moveTo(p.x, state.pad.top);
+          ctx2.lineTo(p.x, state.h - state.pad.bottom);
+          ctx2.stroke();
+          // Highlight
+          ctx2.beginPath();
+          ctx2.arc(p.x, p.y, 5, 0, Math.PI * 2);
+          ctx2.fillStyle = '#061b31';
+          ctx2.fill();
+          ctx2.beginPath();
+          ctx2.arc(p.x, p.y, 3, 0, Math.PI * 2);
+          ctx2.fillStyle = '#ffffff';
+          ctx2.fill();
+
+          // Tooltip
+          const ddPct = p.row.drawdown >= 0 ? '0%' : `${(p.row.drawdown * 100).toFixed(2)}%`;
+          tooltip.innerHTML = `<div class="t1">${p.row.date}</div><div>回撤：${ddPct}</div>`;
+          tooltip.style.opacity = 1;
+          const margin = 10, ttWidth = tooltip.offsetWidth || 100, ttHeight = tooltip.offsetHeight || 40;
+          let left = p.x - ttWidth / 2, top = p.y - ttHeight - 12;
+          if (left < margin) left = margin;
+          if (left + ttWidth > state.w - margin) left = state.w - margin - ttWidth;
+          if (top < margin) top = p.y + 12;
+          tooltip.style.left = `${left}px`;
+          tooltip.style.top = `${top}px`;
+        });
+        canvas.addEventListener('mouseleave', () => {
+          if (canvas._uwBase) canvas.getContext('2d').putImageData(canvas._uwBase, 0, 0);
+          tooltip.style.opacity = 0;
+        });
+        canvas._uwBoundHover = true;
+      }
+
+      // Sample note
+      noteEl.textContent = drawdowns.length < 100 ? `基于 ${drawdowns.length} 个交易日（样本有限，结果仅供参考）` : `基于 ${drawdowns.length} 个交易日`;
+    }
 
     // ─── Date Range Selector ───
     function getFilteredByDate(rows) {
@@ -960,6 +1301,7 @@
       filtered = getFilteredByDate([...data]).sort((a, b) => b.valuation_date.localeCompare(a.valuation_date));
       renderTable();
       drawChart();
+      drawUnderwaterChart();
     }
 
     document.querySelectorAll('#rangeBar .pill').forEach(btn => btn.addEventListener('click', () => applyDateRange(btn.dataset.range)));
