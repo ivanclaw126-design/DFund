@@ -317,6 +317,7 @@
       flex-shrink: 0;
     }
     .chart-legend .leg-fund::before { background: var(--purple); }
+    .chart-legend .leg-overlay::before { background: #f59e0b; }
     .chart-legend .leg-ret::before { background: #f59e0b; }
     .chart-legend .leg-idx1::before { background: rgba(99,102,241,0.55); }
     .chart-legend .leg-idx2::before { background: rgba(16,185,129,0.55); }
@@ -769,6 +770,11 @@
           <button class="pill" data-series="nav">单位净值</button>
           <button class="pill" data-series="return">累计收益率</button>
           <button class="pill active" data-series="compare">归一化对比</button>
+          <select id="overlayFund" style="margin-left:12px;font-family:var(--font);font-size:12px;color:var(--heading);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:5px 10px;">
+            <option value="">无对比</option>
+            <option value="SBFZ85">叠加天璇CTA</option>
+            <option value="SBFZ95">叠加开阳多策略</option>
+          </select>
         </div>
         <div class="chart-shell" id="chartShell">
           <canvas id="chart"></canvas>
@@ -776,6 +782,7 @@
         </div>
         <div class="chart-legend">
           <span class="leg-fund">基金主线</span>
+          <span class="leg-overlay" id="legOverlay" style="display:none;">对比基金</span>
           <span class="leg-ret">基金累计收益率</span>
           <span class="leg-idx1">上证指数</span>
           <span class="leg-idx2">沪深300</span>
@@ -953,6 +960,7 @@
     let sortAsc = false;
     let currentSeries = 'compare';
     let dateRange = { from: null, to: null, preset: 'all' };
+    let overlayFund = ''; // empty means no overlay
 
     const fmtPct = v => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
     const fmtNav = v => Number(v).toFixed(4);
@@ -1150,6 +1158,32 @@
       ctx.closePath();
       ctx.fillStyle = fill;
       ctx.fill();
+
+      // Overlay fund line (if selected)
+      if (overlayFund && overlayFund !== currentFund && currentSeries === 'compare') {
+        const overlayData = fundConfigs[overlayFund]?.rows || [];
+        const overlaySorted = [...overlayData].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+        if (overlaySorted.length > 0 && sorted.length > 0) {
+          const overlayBaseNav = overlaySorted[0].unit_nav;
+          ctx.beginPath();
+          let hasPoint = false;
+          sorted.forEach((d, i) => {
+            const overlayPoint = overlaySorted.find(od => od.valuation_date === d.valuation_date);
+            if (!overlayPoint) return;
+            const overlayNorm = overlayPoint.unit_nav / overlayBaseNav;
+            const px = x(i), py = y(overlayNorm);
+            if (!hasPoint) { ctx.moveTo(px, py); hasPoint = true; }
+            else ctx.lineTo(px, py);
+          });
+          if (hasPoint) {
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeStyle = '#f59e0b';
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+      }
 
       // Data points
       const points = sorted.map((d, i) => ({ x: x(i), y: y(fundSeriesAccessor(d)), row: d }));
@@ -2071,6 +2105,20 @@
       rollingBenchmark = e.target.value;
       drawRollingChart();
       renderStressTable();
+    });
+
+    // ─── Dual-Fund Overlay ───
+    document.getElementById('overlayFund').addEventListener('change', e => {
+      overlayFund = e.target.value;
+      // Update legend visibility
+      const legOverlay = document.getElementById('legOverlay');
+      if (overlayFund && overlayFund !== currentFund) {
+        legOverlay.style.display = 'inline';
+        legOverlay.textContent = overlayFund === 'SBFZ85' ? '天璇CTA' : '开阳多策略';
+      } else {
+        legOverlay.style.display = 'none';
+      }
+      drawChart();
     });
 
     // ─── Stress Days Table ───
