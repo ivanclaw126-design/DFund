@@ -359,6 +359,84 @@
       font-weight: 300;
       color: var(--body);
     }
+    .stat-label {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 160px;
+    }
+    .stat-label-text {
+      line-height: 1.35;
+    }
+    .stat-info-btn {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--purple-border);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--purple);
+      font-family: var(--font);
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+    .stat-info-btn:hover,
+    .stat-info-btn:focus-visible,
+    .stat-info-btn[aria-expanded="true"] {
+      background: var(--purple-soft);
+      border-color: var(--purple);
+      outline: none;
+    }
+    .stat-info-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: min(240px, calc(100vw - 48px));
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      box-shadow: var(--shadow-blue) 0px 18px 30px -24px, var(--shadow-black) 0px 12px 18px -14px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+      z-index: 20;
+    }
+    .stat-label.open .stat-info-popover {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .stat-info-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--heading);
+      margin-bottom: 6px;
+    }
+    .stat-info-summary,
+    .stat-info-formula {
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--body);
+    }
+    .stat-info-formula {
+      margin-top: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--heading);
+      white-space: normal;
+    }
     .stat-item .v {
       font-size: 13px;
       font-weight: 500;
@@ -727,6 +805,14 @@
       .range-bar { flex-direction: column; align-items: stretch; gap: 8px; }
       .range-bar .range-pills { flex-wrap: wrap; }
       .range-bar input[type="date"] { width: 100%; }
+      .stat-label {
+        max-width: calc(100vw - 140px);
+      }
+      .stat-info-popover {
+        left: 0;
+        right: auto;
+        width: min(220px, calc(100vw - 32px));
+      }
       .footer { flex-direction: column; gap: 8px; text-align: center; }
     }
   </style>
@@ -997,6 +1083,100 @@
     const fmtPct = v => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
     const fmtNav = v => Number(v).toFixed(4);
     const fmtMoney = v => Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const ratioAnnotations = {
+      sharpe: {
+        title: 'Sharpe Ratio',
+        summary: '每承受 1 单位总波动，基金大致换来了多少超额回报，通常越高越好。',
+        formula: '(年化收益率 - 无风险利率) / 年化波动率'
+      },
+      sortino: {
+        title: 'Sortino Ratio',
+        summary: '和夏普类似，但只惩罚下跌波动，更适合看“亏损风险换来了多少回报”，通常越高越好。',
+        formula: '(年化收益率 - 无风险利率) / 下行波动率'
+      },
+      calmar: {
+        title: 'Calmar Ratio',
+        summary: '用收益去对比最大回撤，表示“承担一次大回撤，换来了多少年化收益”，通常越高越好。',
+        formula: '年化收益率 / 最大回撤'
+      }
+    };
+
+    let activeRatioKey = null;
+
+    function closeRatioAnnotations() {
+      document.querySelectorAll('.stat-label.open').forEach(label => label.classList.remove('open'));
+      document.querySelectorAll('.stat-info-btn[aria-expanded="true"]').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+      activeRatioKey = null;
+    }
+
+    function openRatioAnnotation(key) {
+      closeRatioAnnotations();
+      const label = document.querySelector(`.stat-label[data-ratio-key="${key}"]`);
+      const button = document.querySelector(`.stat-info-btn[data-ratio-trigger="${key}"]`);
+      if (!label || !button) return;
+      label.classList.add('open');
+      button.setAttribute('aria-expanded', 'true');
+      activeRatioKey = key;
+    }
+
+    function toggleRatioAnnotation(key) {
+      if (activeRatioKey === key) {
+        closeRatioAnnotations();
+        return;
+      }
+      openRatioAnnotation(key);
+    }
+
+    function renderStatLabel(label, annotationKey) {
+      if (!annotationKey) return label;
+      const annotation = ratioAnnotations[annotationKey];
+      const popoverId = `ratio-info-${annotationKey}`;
+      return `
+        <span class="stat-label" data-ratio-key="${annotationKey}">
+          <span class="stat-label-text">${label}</span>
+          <button
+            type="button"
+            class="stat-info-btn"
+            data-ratio-trigger="${annotationKey}"
+            aria-label="查看 ${annotation.title} 说明"
+            aria-expanded="false"
+            aria-controls="${popoverId}"
+          >i</button>
+          <span class="stat-info-popover" id="${popoverId}" role="tooltip">
+            <span class="stat-info-title">${annotation.title}</span>
+            <span class="stat-info-summary">${annotation.summary}</span>
+            <span class="stat-info-formula">${annotation.formula}</span>
+          </span>
+        </span>`;
+    }
+
+    function bindRatioAnnotationEvents() {
+      document.querySelectorAll('.stat-label[data-ratio-key]').forEach(label => {
+        const key = label.dataset.ratioKey;
+        const button = label.querySelector('.stat-info-btn');
+        if (!button || button.dataset.bound === 'true') return;
+
+        label.addEventListener('mouseenter', () => openRatioAnnotation(key));
+        label.addEventListener('mouseleave', () => {
+          if (window.matchMedia('(hover: hover)').matches) closeRatioAnnotations();
+        });
+        button.addEventListener('focus', () => openRatioAnnotation(key));
+        button.addEventListener('click', event => {
+          event.preventDefault();
+          event.stopPropagation();
+          toggleRatioAnnotation(key);
+        });
+        button.addEventListener('keydown', event => {
+          if (event.key === 'Escape') {
+            closeRatioAnnotations();
+            button.blur();
+          }
+        });
+
+        button.dataset.bound = 'true';
+      });
+    }
+
 
     async function fetchJson(paths) {
       for (const path of paths) {
@@ -1119,15 +1299,16 @@
       const calmarVal = riskMetrics.calmar !== null ? riskMetrics.calmar.toFixed(2) : '—';
       const winRateVal = riskMetrics.winRate !== null ? (riskMetrics.winRate * 100).toFixed(1) + '%' : '—';
       document.getElementById('statList').innerHTML = `
-        <div class="stat-item"><div class="k">Sharpe Ratio</div><div class="v">${sharpeVal}<br><span class="sub">年化，无风险利率 2%</span></div></div>
-        <div class="stat-item"><div class="k">Sortino Ratio</div><div class="v">${sortinoVal}<br><span class="sub">年化，仅下行波动</span></div></div>
-        <div class="stat-item"><div class="k">Calmar Ratio</div><div class="v">${calmarVal}<br><span class="sub">年化收益/最大回撤</span></div></div>
+        <div class="stat-item"><div class="k">${renderStatLabel('Sharpe Ratio', 'sharpe')}</div><div class="v">${sharpeVal}<br><span class="sub">年化，无风险利率 2%</span></div></div>
+        <div class="stat-item"><div class="k">${renderStatLabel('Sortino Ratio', 'sortino')}</div><div class="v">${sortinoVal}<br><span class="sub">年化，仅下行波动</span></div></div>
+        <div class="stat-item"><div class="k">${renderStatLabel('Calmar Ratio', 'calmar')}</div><div class="v">${calmarVal}<br><span class="sub">年化收益/最大回撤</span></div></div>
         <div class="stat-item"><div class="k">胜率</div><div class="v">${winRateVal}<br><span class="sub">正收益天数占比</span></div></div>
         <div class="stat-item"><div class="k">最高单位净值</div><div class="v pos">${fmtNav(m.max_nav.unit_nav)}<br><span class="sub">${m.max_nav.valuation_date}</span></div></div>
         <div class="stat-item"><div class="k">最低单位净值</div><div class="v neg">${fmtNav(m.min_nav.unit_nav)}<br><span class="sub">${m.min_nav.valuation_date}</span></div></div>
         <div class="stat-item"><div class="k">最大回撤区间</div><div class="v">${m.max_drawdown.start.valuation_date} → ${m.max_drawdown.end.valuation_date}</div></div>
         <div class="stat-item"><div class="k">样本起始日</div><div class="v">${data[0].valuation_date}</div></div>
         <div class="stat-item"><div class="k">样本最新日</div><div class="v">${data[data.length - 1].valuation_date}</div></div>`;
+      bindRatioAnnotationEvents();
       document.getElementById('chartDesc').textContent = currentSeries === 'compare' ? '当前为归一化对比模式，基金与四条宽基指数均从同一起点出发。' : '支持窗口自适应、鼠标悬停查看日期与对应数据。';
     }
 
@@ -1365,7 +1546,14 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
     });
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.stat-label')) closeRatioAnnotations();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeRatioAnnotations();
+    });
     window.addEventListener('resize', () => {
+      closeRatioAnnotations();
       drawChart();
       drawUnderwaterChart();
       renderRegimePanel();
