@@ -1011,7 +1011,51 @@
         renderTable();
         drawChart();
         drawUnderwaterChart();
+        renderRegimePanel();
+        drawScatterPlot();
+        drawRollingChart();
+        renderStressTable();
       }));
+    }
+
+    // Calculate risk-adjusted metrics
+    function calculateRiskAdjustedMetrics(rows) {
+      const sorted = [...rows].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+      if (sorted.length < 2) return { sharpe: null, sortino: null, calmar: null, winRate: null };
+
+      // Daily returns
+      const returns = sorted.slice(1).map((d, i) => (d.unit_nav - sorted[i].unit_nav) / sorted[i].unit_nav);
+      const avgReturn = returns.reduce((s, r) => s + r, 0) / returns.length;
+      const variance = returns.reduce((s, r) => s + (r - avgReturn) ** 2, 0) / returns.length;
+      const stdDev = Math.sqrt(variance);
+
+      // Annualized (assume 252 trading days)
+      const annualizedReturn = avgReturn * 252;
+      const annualizedStdDev = stdDev * Math.sqrt(252);
+
+      // Risk-free rate (approx China 1-year treasury) = 2.0%
+      const riskFreeRate = 0.02;
+
+      // Sharpe Ratio
+      const sharpe = annualizedStdDev > 0 ? (annualizedReturn - riskFreeRate) / annualizedStdDev : null;
+
+      // Sortino Ratio (downside deviation only)
+      const downsideReturns = returns.filter(r => r < 0);
+      const downsideDev = downsideReturns.length > 0 ? Math.sqrt(downsideReturns.reduce((s, r) => s + r ** 2, 0) / downsideReturns.length) * Math.sqrt(252) : 0;
+      const sortino = downsideDev > 0 ? (annualizedReturn - riskFreeRate) / downsideDev : null;
+
+      // Max drawdown from metrics
+      const m = fundConfigs[currentFund].metrics;
+      const maxDD = m.max_drawdown.value;
+
+      // Calmar Ratio (annualized return / max drawdown)
+      const calmar = maxDD > 0 ? annualizedReturn / maxDD : null;
+
+      // Win rate (positive return days)
+      const wins = returns.filter(r => r > 0).length;
+      const winRate = wins / returns.length;
+
+      return { sharpe, sortino, calmar, winRate };
     }
 
     function applyFundConfig() {
@@ -1034,11 +1078,20 @@
         <div class="ret-card"><div class="k">近 5 个估值日收益</div><div class="v ${m.last_5d >= 0 ? 'pos' : 'neg'}">${fmtPct(m.last_5d)}</div></div>
         <div class="ret-card"><div class="k">近 20 个估值日收益</div><div class="v ${m.last_20d >= 0 ? 'pos' : 'neg'}">${fmtPct(m.last_20d)}</div></div>
         <div class="ret-card"><div class="k">近 60 个估值日收益</div><div class="v ${m.last_60d >= 0 ? 'pos' : 'neg'}">${fmtPct(m.last_60d)}</div></div>`;
+      // Calculate risk-adjusted metrics
+      const riskMetrics = calculateRiskAdjustedMetrics(data);
+      const sharpeVal = riskMetrics.sharpe !== null ? riskMetrics.sharpe.toFixed(2) : '—';
+      const sortinoVal = riskMetrics.sortino !== null ? riskMetrics.sortino.toFixed(2) : '—';
+      const calmarVal = riskMetrics.calmar !== null ? riskMetrics.calmar.toFixed(2) : '—';
+      const winRateVal = riskMetrics.winRate !== null ? (riskMetrics.winRate * 100).toFixed(1) + '%' : '—';
       document.getElementById('statList').innerHTML = `
+        <div class="stat-item"><div class="k">Sharpe Ratio</div><div class="v">${sharpeVal}<br><span class="sub">年化，无风险利率 2%</span></div></div>
+        <div class="stat-item"><div class="k">Sortino Ratio</div><div class="v">${sortinoVal}<br><span class="sub">年化，仅下行波动</span></div></div>
+        <div class="stat-item"><div class="k">Calmar Ratio</div><div class="v">${calmarVal}<br><span class="sub">年化收益/最大回撤</span></div></div>
+        <div class="stat-item"><div class="k">胜率</div><div class="v">${winRateVal}<br><span class="sub">正收益天数占比</span></div></div>
         <div class="stat-item"><div class="k">最高单位净值</div><div class="v pos">${fmtNav(m.max_nav.unit_nav)}<br><span class="sub">${m.max_nav.valuation_date}</span></div></div>
         <div class="stat-item"><div class="k">最低单位净值</div><div class="v neg">${fmtNav(m.min_nav.unit_nav)}<br><span class="sub">${m.min_nav.valuation_date}</span></div></div>
         <div class="stat-item"><div class="k">最大回撤区间</div><div class="v">${m.max_drawdown.start.valuation_date} → ${m.max_drawdown.end.valuation_date}</div></div>
-        <div class="stat-item"><div class="k">回撤对应净值</div><div class="v">${fmtNav(m.max_drawdown.start.unit_nav)} → ${fmtNav(m.max_drawdown.end.unit_nav)}</div></div>
         <div class="stat-item"><div class="k">样本起始日</div><div class="v">${data[0].valuation_date}</div></div>
         <div class="stat-item"><div class="k">样本最新日</div><div class="v">${data[data.length - 1].valuation_date}</div></div>`;
       document.getElementById('chartDesc').textContent = currentSeries === 'compare' ? '当前为归一化对比模式，基金与四条宽基指数均从同一起点出发。' : '支持窗口自适应、鼠标悬停查看日期与对应数据。';
@@ -2260,7 +2313,73 @@
       applyDateRange('all');
     });
 
+    // ─── Shareable URL ───
+    function updateUrlParams() {
+      const params = new URLSearchParams();
+      if (currentFund) params.set('fund', currentFund);
+      if (dateRange.from) params.set('from', dateRange.from);
+      if (dateRange.to) params.set('to', dateRange.to);
+      if (dateRange.preset !== 'all' && dateRange.preset !== 'custom') params.set('range', dateRange.preset);
+      if (regimeBenchmark) params.set('bench', encodeURIComponent(regimeBenchmark));
+      const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    function applyUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      // Fund
+      const fundParam = params.get('fund');
+      if (fundParam && (fundParam === 'SBFZ85' || fundParam === 'SBFZ95')) {
+        currentFund = fundParam;
+      }
+      // Date range
+      const fromParam = params.get('from');
+      const toParam = params.get('to');
+      const rangeParam = params.get('range');
+      if (rangeParam && ['1m', '3m', 'ytd'].includes(rangeParam)) {
+        dateRange.preset = rangeParam;
+      } else if (fromParam || toParam) {
+        dateRange.from = fromParam;
+        dateRange.to = toParam;
+        dateRange.preset = 'custom';
+      }
+      // Benchmark
+      const benchParam = params.get('bench');
+      if (benchParam) {
+        const decoded = decodeURIComponent(benchParam);
+        if (['沪深300', '上证指数', '中证500', '中证1000'].includes(decoded)) {
+          regimeBenchmark = decoded;
+          scatterBenchmark = decoded;
+          rollingBenchmark = decoded;
+          stressBenchmark = decoded;
+        }
+      }
+      // Update UI elements to reflect params
+      if (dateRange.preset !== 'all') {
+        applyDateRange(dateRange.preset);
+      }
+      if (dateRange.from || dateRange.to) {
+        document.getElementById('rangeFrom').value = dateRange.from || '';
+        document.getElementById('rangeTo').value = dateRange.to || '';
+        applyDateRange(null, dateRange.from, dateRange.to);
+      }
+      // Update benchmark selectors
+      document.getElementById('regimeBenchmark').value = regimeBenchmark;
+      document.getElementById('scatterBenchmark').value = scatterBenchmark;
+      document.getElementById('rollingBenchmark').value = rollingBenchmark;
+      document.getElementById('stressBenchmark').value = stressBenchmark;
+    }
+
+    // Call updateUrlParams on state changes
+    // Wrap existing functions to also update URL
+    const originalApplyDateRange = applyDateRange;
+    applyDateRange = function(preset, from, to) {
+      originalApplyDateRange(preset, from, to);
+      updateUrlParams();
+    };
+
     loadData();
+    applyUrlParams();
   </script>
 </body>
 </html>
