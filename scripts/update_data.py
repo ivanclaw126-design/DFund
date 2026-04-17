@@ -178,9 +178,13 @@ def fetch_benchmarks(start_date: str, end_date: str):
     end = dt.date.fromisoformat(end_date)
     out = {}
     for symbol, name in INDEX_MAP.items():
-        df = ak.stock_zh_index_daily(symbol=symbol)
-        df = df[(df['date'] >= start) & (df['date'] <= end)]
-        series = {str(d): float(c) for d, c in zip(df['date'], df['close'])}
+        try:
+            df = ak.stock_zh_index_daily(symbol=symbol)
+            df = df[(df['date'] >= start) & (df['date'] <= end)]
+            series = {str(d): float(c) for d, c in zip(df['date'], df['close'])}
+        except Exception as e:
+            print(f'[WARN] Failed to fetch {name} ({symbol}): {e}')
+            continue
         base = None
         arr = []
         last_val = None
