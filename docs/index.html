@@ -555,6 +555,60 @@
       margin-top: 8px;
       font-weight: 300;
     }
+    .regime-selector {
+      margin-bottom: 12px;
+    }
+    .regime-selector select {
+      font-family: var(--font);
+      font-size: 12px;
+      color: var(--heading);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .regime-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .regime-table th, .regime-table td {
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 12px;
+      font-feature-settings: "tnum";
+    }
+    .regime-table th {
+      color: var(--body);
+      font-weight: 400;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--border);
+    }
+    .regime-table tbody tr:first-child td { border-top: none; }
+    .regime-table tbody tr td {
+      border-top: 1px dashed var(--border);
+      color: var(--label);
+      font-weight: 300;
+    }
+    .regime-table .regime-row-label {
+      text-align: left;
+      font-weight: 400;
+      color: var(--heading);
+    }
+    .regime-table .key-metric {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .regime-table .up-day { color: var(--up); }
+    .regime-table .down-day { color: var(--down); }
+    .regime-no-data {
+      font-size: 12px;
+      color: var(--body);
+      text-align: center;
+      padding: 16px;
+    }
 
     /* ─── Responsive ─── */
     @media (max-width: 1200px) {
@@ -669,13 +723,32 @@
         <div class="analytics-sample-note" id="underwaterNote"></div>
       </section>
 
-      <!-- Placeholder for Regime Panel (next module) -->
+      <!-- Regime Panel -->
       <section class="analytics-card" style="border-left: 3px solid #533afd;">
         <h3 style="display:flex;align-items:center;gap:8px;">体制分析 <span style="font-size:10px;background:#533afd;color:#fff;padding:2px 6px;border-radius:3px;">核心洞察</span></h3>
-        <div class="card-sub">股市涨跌时，基金如何反应？</div>
-        <div class="analytics-shell" id="regimeShell" style="display:flex;align-items:center;justify-content:center;">
-          <span style="color:var(--body);font-size:13px;">模块开发中...</span>
+        <div class="card-sub">股市涨跌时，基金如何反应？选择基准指数查看不同市场环境下的基金表现。</div>
+        <div class="regime-selector">
+          <select id="regimeBenchmark">
+            <option value="沪深300">沪深300</option>
+            <option value="上证指数">上证指数</option>
+            <option value="中证500">中证500</option>
+            <option value="中证1000">中证1000</option>
+          </select>
         </div>
+        <div id="regimeContent">
+          <table class="regime-table">
+            <thead>
+              <tr>
+                <th>市场环境</th>
+                <th>天数</th>
+                <th>基金平均收益</th>
+                <th>胜率</th>
+              </tr>
+            </thead>
+            <tbody id="regimeBody"></tbody>
+          </table>
+        </div>
+        <div class="analytics-sample-note" id="regimeNote"></div>
       </section>
     </div>
 
@@ -757,6 +830,7 @@
       renderTable();
       drawChart();
       drawUnderwaterChart();
+      renderRegimePanel();
     }
 
     function renderFundTabs() {
@@ -1015,6 +1089,7 @@
     window.addEventListener('resize', () => {
       drawChart();
       drawUnderwaterChart();
+      renderRegimePanel();
     });
 
     // ─── Underwater Chart ───
@@ -1270,6 +1345,117 @@
       noteEl.textContent = drawdowns.length < 100 ? `基于 ${drawdowns.length} 个交易日（样本有限，结果仅供参考）` : `基于 ${drawdowns.length} 个交易日`;
     }
 
+    // ─── Regime Panel ───
+    let regimeBenchmark = '沪深300';
+
+    function calculateRegimeStats(rows, benchmarkName) {
+      // Get benchmark data and calculate daily returns
+      const benchmarkData = (benchmarks[benchmarkName] || []).filter(d => rows.some(r => r.valuation_date === d.date));
+      const sortedRows = [...rows].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+
+      // Calculate daily fund returns
+      const fundReturns = sortedRows.map((row, i) => {
+        if (i === 0) return null;
+        const prevNav = sortedRows[i - 1].unit_nav;
+        return {
+          date: row.valuation_date,
+          fundReturn: (row.unit_nav - prevNav) / prevNav
+        };
+      }).filter(d => d !== null);
+
+      // Match fund returns with benchmark returns
+      const matched = fundReturns.filter(fr => {
+        const bench = benchmarkData.find(b => b.date === fr.date);
+        return bench && bench.norm !== undefined;
+      }).map(fr => {
+        const bench = benchmarkData.find(b => b.date === fr.date);
+        // Find previous benchmark norm to calculate daily return
+        const prevBenchIdx = benchmarkData.findIndex(b => b.date === fr.date) - 1;
+        if (prevBenchIdx < 0) return null;
+        const prevBenchNorm = benchmarkData[prevBenchIdx].norm;
+        const benchReturn = (bench.norm - prevBenchNorm) / prevBenchNorm;
+        return {
+          date: fr.date,
+          fundReturn: fr.fundReturn,
+          benchReturn: benchReturn
+        };
+      }).filter(d => d !== null);
+
+      // Define regimes based on benchmark daily return
+      // Up: > +0.5%, Down: < -0.5%, Stress/Crash: < -1.0%, Neutral: between
+      const regimes = {
+        up: matched.filter(d => d.benchReturn > 0.005),
+        down: matched.filter(d => d.benchReturn < -0.005 && d.benchReturn >= -0.01),
+        stress: matched.filter(d => d.benchReturn < -0.01),
+        neutral: matched.filter(d => d.benchReturn >= -0.005 && d.benchReturn <= 0.005)
+      };
+
+      // Calculate stats for each regime
+      const stats = {};
+      for (const [name, days] of Object.entries(regimes)) {
+        if (days.length === 0) {
+          stats[name] = { days: 0, avgReturn: null, winRate: null };
+          continue;
+        }
+        const avgReturn = days.reduce((sum, d) => sum + d.fundReturn, 0) / days.length;
+        const wins = days.filter(d => d.fundReturn > 0).length;
+        const winRate = wins / days.length;
+        stats[name] = { days: days.length, avgReturn, winRate };
+      }
+
+      return { stats, matchedCount: matched.length };
+    }
+
+    function renderRegimePanel() {
+      const tbody = document.getElementById('regimeBody');
+      const noteEl = document.getElementById('regimeNote');
+      const dateFiltered = getFilteredByDate(data);
+
+      if (dateFiltered.length < 2) {
+        tbody.innerHTML = '<tr><td colspan="4" class="regime-no-data">数据不足</td></tr>';
+        noteEl.textContent = '';
+        return;
+      }
+
+      const { stats, matchedCount } = calculateRegimeStats(dateFiltered, regimeBenchmark);
+
+      // Render table rows
+      const rows = [
+        { key: 'up', label: '基准上涨日', labelClass: 'up-day', desc: '> +0.5%' },
+        { key: 'down', label: '基准下跌日', labelClass: 'down-day', desc: '< -0.5%', isKey: true },
+        { key: 'stress', label: '基准暴跌日', labelClass: 'down-day', desc: '< -1%' },
+      ];
+
+      tbody.innerHTML = rows.map(r => {
+        const s = stats[r.key];
+        const days = s.days || 0;
+        const avgReturn = s.avgReturn !== null ? (s.avgReturn * 100).toFixed(2) + '%' : '—';
+        const avgReturnClass = s.avgReturn !== null ? (s.avgReturn > 0 ? 'pos' : 'neg') : '';
+        const winRate = s.winRate !== null ? (s.winRate * 100).toFixed(1) + '%' : '—';
+        const valueClass = r.isKey ? 'key-metric' : '';
+        return `<tr>
+          <td class="regime-row-label ${r.labelClass}">${r.label}<br><span style="font-size:10px;color:var(--body);font-weight:300;">${r.desc}</span></td>
+          <td ${valueClass ? `class="${valueClass}"` : ''}>${days}</td>
+          <td class="${avgReturnClass} ${valueClass}">${avgReturn}</td>
+          <td ${valueClass ? `class="${valueClass}"` : ''}>${winRate}</td>
+        </tr>`;
+      }).join('');
+
+      // Sample note
+      noteEl.textContent = matchedCount < 100 ? `匹配 ${matchedCount} 个交易日（样本有限，结果仅供参考）` : `匹配 ${matchedCount} 个交易日`;
+
+      // Handle no stress days
+      if (stats.stress.days === 0) {
+        // Could add a note, but we show "—" in the table already
+      }
+    }
+
+    // Regime benchmark selector
+    document.getElementById('regimeBenchmark').addEventListener('change', e => {
+      regimeBenchmark = e.target.value;
+      renderRegimePanel();
+    });
+
     // ─── Date Range Selector ───
     function getFilteredByDate(rows) {
       if (dateRange.preset === 'all' && !dateRange.from && !dateRange.to) return rows;
@@ -1302,6 +1488,7 @@
       renderTable();
       drawChart();
       drawUnderwaterChart();
+      renderRegimePanel();
     }
 
     document.querySelectorAll('#rangeBar .pill').forEach(btn => btn.addEventListener('click', () => applyDateRange(btn.dataset.range)));
