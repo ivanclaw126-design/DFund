@@ -42,6 +42,7 @@
       font-family: var(--font);
       background: var(--bg);
       color: var(--label);
+      font-feature-settings: "ss01";
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
@@ -164,7 +165,7 @@
       transition: box-shadow 0.2s ease;
     }
     .metric-card:hover {
-      box-shadow: var(--shadow-ambient) 0px 15px 35px 0px;
+      box-shadow: var(--shadow-blue) 0px 30px 45px -30px, var(--shadow-black) 0px 18px 36px -18px;
     }
     .metric-label {
       font-size: 11px;
@@ -447,9 +448,56 @@
       justify-content: space-between;
       align-items: center;
       font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      font-weight: 300;
+      background: var(--brand-dark);
+      border-top: none;
+    }
+
+    /* ─── Date Range Bar ─── */
+    .range-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .range-bar .range-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--body);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .range-bar .range-pills { display: flex; gap: 4px; }
+    .range-bar input[type="date"] {
+      font-family: var(--font);
+      font-size: 12px;
+      color: var(--heading);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 8px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .range-bar input[type="date"]:focus { border-color: var(--purple); }
+    .range-bar .range-sep {
+      font-size: 12px;
       color: var(--body);
       font-weight: 300;
     }
+    .range-bar .range-reset {
+      font-family: var(--font);
+      font-size: 11px;
+      color: var(--purple);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .range-bar .range-reset:hover { background: var(--purple-soft); }
 
     /* ─── Responsive ─── */
     @media (max-width: 1200px) {
@@ -501,6 +549,21 @@
 
     <!-- Return Cards -->
     <div class="ret-grid" id="retGrid"></div>
+
+    <!-- Date Range Selector -->
+    <div class="range-bar" id="rangeBar">
+      <span class="range-label">时段</span>
+      <div class="range-pills">
+        <button class="pill active" data-range="all">全部</button>
+        <button class="pill" data-range="1m">近1月</button>
+        <button class="pill" data-range="3m">近3月</button>
+        <button class="pill" data-range="ytd">今年以来</button>
+      </div>
+      <input type="date" id="rangeFrom" />
+      <span class="range-sep">—</span>
+      <input type="date" id="rangeTo" />
+      <button class="range-reset" id="rangeReset" style="display:none;">重置</button>
+    </div>
 
     <!-- Chart + Stats -->
     <div class="main-layout">
@@ -561,9 +624,11 @@
   </div>
 
   <!-- Footer -->
-  <div class="footer">
-    <span>DFund 基金业绩展示 — 数据来源于 Apple Mail 邮件抓取</span>
-    <span>Design inspired by Stripe</span>
+  <div style="background:var(--brand-dark);">
+    <div class="footer">
+      <span>DFund 基金业绩展示 — 数据来源于 Apple Mail 邮件抓取</span>
+      <span>Design inspired by Stripe</span>
+    </div>
   </div>
 
   <script>
@@ -576,6 +641,7 @@
     let sortKey = 'valuation_date';
     let sortAsc = false;
     let currentSeries = 'compare';
+    let dateRange = { from: null, to: null, preset: 'all' };
 
     const fmtPct = v => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
     const fmtNav = v => Number(v).toFixed(4);
@@ -692,7 +758,8 @@
       canvas.style.height = h + 'px';
       const ctx = canvas.getContext('2d');
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const sorted = [...data].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+      const dateFiltered = getFilteredByDate(data);
+      const sorted = [...dateFiltered].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
       const pad = { top: 20, right: 16, bottom: 32, left: 54 };
       const fundSeriesAccessor = currentSeries === 'nav' ? (d => d.unit_nav) : currentSeries === 'return' ? (d => d.cum_return) : (d => d.unit_nav / sorted[0].unit_nav);
       const benchmarkSeries = ['上证指数','沪深300','中证500','中证1000'].flatMap(name => (benchmarks[name] || []).map(item => ({ ...item, name }))).filter(item => sorted.some(s => s.valuation_date === item.date));
@@ -861,6 +928,50 @@
       URL.revokeObjectURL(a.href);
     });
     window.addEventListener('resize', drawChart);
+
+    // ─── Date Range Selector ───
+    function getFilteredByDate(rows) {
+      if (dateRange.preset === 'all' && !dateRange.from && !dateRange.to) return rows;
+      const from = dateRange.from || '0000-00-00';
+      const to = dateRange.to || '9999-99-99';
+      return rows.filter(r => r.valuation_date >= from && r.valuation_date <= to);
+    }
+
+    function applyDateRange(preset, from, to) {
+      if (preset) {
+        dateRange.preset = preset;
+        dateRange.from = null;
+        dateRange.to = null;
+        const last = data[data.length - 1].valuation_date;
+        const d = new Date(last);
+        if (preset === '1m') { d.setMonth(d.getMonth() - 1); dateRange.from = d.toISOString().slice(0, 10); }
+        else if (preset === '3m') { d.setMonth(d.getMonth() - 3); dateRange.from = d.toISOString().slice(0, 10); }
+        else if (preset === 'ytd') { dateRange.from = d.getFullYear() + '-01-01'; }
+        document.getElementById('rangeFrom').value = dateRange.from || '';
+        document.getElementById('rangeTo').value = '';
+        document.getElementById('rangeReset').style.display = preset === 'all' ? 'none' : 'inline';
+      } else {
+        dateRange.preset = 'custom';
+        dateRange.from = from || null;
+        dateRange.to = to || null;
+        document.getElementById('rangeReset').style.display = (from || to) ? 'inline' : 'none';
+      }
+      document.querySelectorAll('#rangeBar .pill').forEach(p => p.classList.toggle('active', p.dataset.range === dateRange.preset));
+      filtered = getFilteredByDate([...data]).sort((a, b) => b.valuation_date.localeCompare(a.valuation_date));
+      renderTable();
+      drawChart();
+    }
+
+    document.querySelectorAll('#rangeBar .pill').forEach(btn => btn.addEventListener('click', () => applyDateRange(btn.dataset.range)));
+    document.getElementById('rangeFrom').addEventListener('change', e => applyDateRange(null, e.target.value, document.getElementById('rangeTo').value));
+    document.getElementById('rangeTo').addEventListener('change', e => applyDateRange(null, document.getElementById('rangeFrom').value, e.target.value));
+    document.getElementById('rangeReset').addEventListener('click', () => {
+      dateRange = { from: null, to: null, preset: 'all' };
+      document.getElementById('rangeFrom').value = '';
+      document.getElementById('rangeTo').value = '';
+      applyDateRange('all');
+    });
+
     loadData();
   </script>
 </body>
