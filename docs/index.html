@@ -914,6 +914,22 @@
       <div class="stress-note" id="stressNote"></div>
     </section>
 
+    <!-- Period Benchmark Table -->
+    <section class="stress-section" style="padding: 20px;">
+      <h3 style="font-size:14px;">期间基准对比</h3>
+      <div class="section-sub">当前时段内基金与各基准的收益对比。</div>
+      <table class="stress-table">
+        <thead>
+          <tr>
+            <th>标的</th>
+            <th>期间收益</th>
+            <th>超额收益</th>
+          </tr>
+        </thead>
+        <tbody id="periodBenchmarkBody"></tbody>
+      </table>
+    </section>
+
     <!-- Table -->
     <section class="table-section">
       <div class="table-header">
@@ -997,6 +1013,7 @@
       drawScatterPlot();
       drawRollingChart();
       renderStressTable();
+      renderPeriodBenchmarkTable();
     }
 
     function renderFundTabs() {
@@ -1015,6 +1032,7 @@
         drawScatterPlot();
         drawRollingChart();
         renderStressTable();
+      renderPeriodBenchmarkTable();
       }));
     }
 
@@ -1338,6 +1356,7 @@
       drawScatterPlot();
       drawRollingChart();
       renderStressTable();
+      renderPeriodBenchmarkTable();
     });
 
     // ─── Underwater Chart ───
@@ -2158,7 +2177,53 @@
       rollingBenchmark = e.target.value;
       drawRollingChart();
       renderStressTable();
+      renderPeriodBenchmarkTable();
     });
+
+    // ─── Period Benchmark Table ───
+    function renderPeriodBenchmarkTable() {
+      const tbody = document.getElementById('periodBenchmarkBody');
+      const dateFiltered = getFilteredByDate(data);
+      if (dateFiltered.length < 2) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--body);">数据不足</td></tr>';
+        return;
+      }
+
+      const sorted = [...dateFiltered].sort((a, b) => a.valuation_date.localeCompare(b.valuation_date));
+      const fundStartNav = sorted[0].unit_nav;
+      const fundEndNav = sorted[sorted.length - 1].unit_nav;
+      const fundReturn = (fundEndNav - fundStartNav) / fundStartNav;
+
+      const benchmarkNames = ['上证指数', '沪深300', '中证500', '中证1000'];
+      const rows = [['基金', fundReturn, null]];
+
+      benchmarkNames.forEach(name => {
+        const benchData = (benchmarks[name] || []).filter(d => d.date >= sorted[0].valuation_date && d.date <= sorted[sorted.length - 1].valuation_date);
+        if (benchData.length < 2) {
+          rows.push([name, null, null]);
+          return;
+        }
+        const benchStartNorm = benchData.find(d => d.date === sorted[0].valuation_date)?.norm || benchData[0].norm;
+        const benchEndNorm = benchData.find(d => d.date === sorted[sorted.length - 1].valuation_date)?.norm || benchData[benchData.length - 1].norm;
+        const benchReturn = (benchEndNorm - benchStartNorm) / benchStartNorm;
+        const excess = fundReturn - benchReturn;
+        rows.push([name, benchReturn, excess]);
+      });
+
+      tbody.innerHTML = rows.map(r => {
+        const [name, ret, excess] = r;
+        const retVal = ret !== null ? (ret * 100).toFixed(2) + '%' : '—';
+        const retClass = ret !== null ? (ret > 0 ? 'pos' : 'neg') : '';
+        const excessVal = excess !== null ? (excess * 100).toFixed(2) + '%' : '—';
+        const excessClass = excess !== null ? (excess > 0 ? 'pos' : 'neg') : '';
+        const isFund = name === '基金';
+        return `<tr>
+          <td style="${isFund ? 'font-weight:500;color:var(--purple);' : ''}">${name}</td>
+          <td class="mono ${retClass}">${retVal}</td>
+          <td class="mono ${excessClass}">${excessVal}</td>
+        </tr>`;
+      }).join('');
+    }
 
     // ─── Dual-Fund Overlay ───
     document.getElementById('overlayFund').addEventListener('change', e => {
@@ -2256,6 +2321,7 @@
         tab.classList.add('active');
         stressMode = tab.dataset.stress;
         renderStressTable();
+      renderPeriodBenchmarkTable();
       });
     });
 
@@ -2263,6 +2329,7 @@
     document.getElementById('stressBenchmark').addEventListener('change', e => {
       stressBenchmark = e.target.value;
       renderStressTable();
+      renderPeriodBenchmarkTable();
     });
 
     // ─── Date Range Selector ───
@@ -2301,6 +2368,7 @@
       drawScatterPlot();
       drawRollingChart();
       renderStressTable();
+      renderPeriodBenchmarkTable();
     }
 
     document.querySelectorAll('#rangeBar .pill').forEach(btn => btn.addEventListener('click', () => applyDateRange(btn.dataset.range)));
