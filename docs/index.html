@@ -610,6 +610,87 @@
       padding: 16px;
     }
 
+    /* ─── Stress Days Table ─── */
+    .stress-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .stress-section h3 {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--heading);
+      letter-spacing: -0.32px;
+      margin-bottom: 4px;
+    }
+    .stress-section .section-sub {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--body);
+      margin-bottom: 16px;
+    }
+    .stress-toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .stress-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    .stress-tab {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--body);
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .stress-tab:hover { border-color: var(--purple-border); color: var(--purple); }
+    .stress-tab.active {
+      background: var(--purple);
+      color: #fff;
+      border-color: var(--purple);
+    }
+    .stress-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .stress-table th, .stress-table td {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 12px;
+      font-feature-settings: "tnum";
+    }
+    .stress-table th {
+      color: var(--body);
+      font-weight: 400;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--border);
+    }
+    .stress-table tbody tr { transition: background 0.1s ease; }
+    .stress-table tbody tr:hover { background: var(--surface); }
+    .stress-table td { color: var(--label); border-bottom: 1px solid var(--border); }
+    .stress-table td.pos { color: var(--up); }
+    .stress-table td.neg { color: var(--down); }
+    .stress-table td.mono { font-family: var(--mono); font-size: 11px; }
+    .stress-note {
+      font-size: 11px;
+      color: var(--body);
+      margin-top: 12px;
+      font-weight: 300;
+    }
+
     /* ─── Responsive ─── */
     @media (max-width: 1200px) {
       .metrics-grid { grid-template-columns: repeat(3, 1fr); }
@@ -793,6 +874,39 @@
       </section>
     </div>
 
+    <!-- Stress Days Table -->
+    <section class="stress-section">
+      <h3>压力日分析</h3>
+      <div class="section-sub">查看市场或基金最差交易日的详细表现，验证极端情况下的对冲效果。</div>
+      <div class="stress-toolbar">
+        <div class="stress-tabs">
+          <button class="stress-tab active" data-stress="benchmark">基准最差日</button>
+          <button class="stress-tab" data-stress="fund">基金最差日</button>
+        </div>
+        <div class="regime-selector">
+          <select id="stressBenchmark">
+            <option value="沪深300">沪深300</option>
+            <option value="上证指数">上证指数</option>
+            <option value="中证500">中证500</option>
+            <option value="中证1000">中证1000</option>
+          </select>
+        </div>
+      </div>
+      <table class="stress-table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>基准涨跌</th>
+            <th>基金涨跌</th>
+            <th>超额收益</th>
+            <th>当时β</th>
+          </tr>
+        </thead>
+        <tbody id="stressBody"></tbody>
+      </table>
+      <div class="stress-note" id="stressNote"></div>
+    </section>
+
     <!-- Table -->
     <section class="table-section">
       <div class="table-header">
@@ -874,6 +988,7 @@
       renderRegimePanel();
       drawScatterPlot();
       drawRollingChart();
+      renderStressTable();
     }
 
     function renderFundTabs() {
@@ -1135,6 +1250,7 @@
       renderRegimePanel();
       drawScatterPlot();
       drawRollingChart();
+      renderStressTable();
     });
 
     // ─── Underwater Chart ───
@@ -1954,6 +2070,98 @@
     document.getElementById('rollingBenchmark').addEventListener('change', e => {
       rollingBenchmark = e.target.value;
       drawRollingChart();
+      renderStressTable();
+    });
+
+    // ─── Stress Days Table ───
+    let stressBenchmark = '沪深300';
+    let stressMode = 'benchmark'; // 'benchmark' or 'fund'
+
+    function calculateStressDays(rows, benchmarkName, mode) {
+      const matched = calculateDailyReturns(rows, benchmarkName);
+      if (matched.length < 5) return [];
+
+      // Calculate rolling beta for each day
+      const rollingData = calculateRollingBetaCorrelation(rows, benchmarkName);
+      const rollingMap = new Map(rollingData.map(d => [d.date, d.beta]));
+
+      // Sort by worst days
+      let sorted;
+      if (mode === 'benchmark') {
+        sorted = [...matched].sort((a, b) => a.benchReturn - b.benchReturn);
+      } else {
+        sorted = [...matched].sort((a, b) => a.fundReturn - b.fundReturn);
+      }
+
+      // Top 10 worst days
+      const top10 = sorted.slice(0, 10);
+
+      return top10.map(d => {
+        const excess = d.fundReturn - d.benchReturn;
+        const beta = rollingMap.get(d.date) || null;
+        return {
+          date: d.date,
+          benchReturn: d.benchReturn,
+          fundReturn: d.fundReturn,
+          excess,
+          beta
+        };
+      });
+    }
+
+    function renderStressTable() {
+      const tbody = document.getElementById('stressBody');
+      const noteEl = document.getElementById('stressNote');
+      const dateFiltered = getFilteredByDate(data);
+
+      if (dateFiltered.length < 5) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--body);">数据不足</td></tr>';
+        noteEl.textContent = '';
+        return;
+      }
+
+      const stressDays = calculateStressDays(dateFiltered, stressBenchmark, stressMode);
+
+      if (stressDays.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--body);">无压力日数据</td></tr>';
+        noteEl.textContent = '';
+        return;
+      }
+
+      tbody.innerHTML = stressDays.map(d => {
+        const benchClass = d.benchReturn >= 0 ? 'pos' : 'neg';
+        const fundClass = d.fundReturn >= 0 ? 'pos' : 'neg';
+        const excessClass = d.excess >= 0 ? 'pos' : 'neg';
+        const benchPct = `${(d.benchReturn * 100).toFixed(2)}%`;
+        const fundPct = `${(d.fundReturn * 100).toFixed(2)}%`;
+        const excessPct = `${(d.excess * 100).toFixed(2)}%`;
+        const betaVal = d.beta !== null ? d.beta.toFixed(3) : '—';
+        return `<tr>
+          <td class="mono">${d.date}</td>
+          <td class="mono ${benchClass}">${benchPct}</td>
+          <td class="mono ${fundClass}">${fundPct}</td>
+          <td class="mono ${excessClass}">${excessPct}</td>
+          <td class="mono">${betaVal}</td>
+        </tr>`;
+      }).join('');
+
+      noteEl.textContent = `显示 ${stressDays.length} 个压力日（${stressMode === 'benchmark' ? '基准跌幅最大' : '基金跌幅最大'}）`;
+    }
+
+    // Stress mode tabs
+    document.querySelectorAll('.stress-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.stress-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        stressMode = tab.dataset.stress;
+        renderStressTable();
+      });
+    });
+
+    // Stress benchmark selector
+    document.getElementById('stressBenchmark').addEventListener('change', e => {
+      stressBenchmark = e.target.value;
+      renderStressTable();
     });
 
     // ─── Date Range Selector ───
@@ -1991,6 +2199,7 @@
       renderRegimePanel();
       drawScatterPlot();
       drawRollingChart();
+      renderStressTable();
     }
 
     document.querySelectorAll('#rangeBar .pill').forEach(btn => btn.addEventListener('click', () => applyDateRange(btn.dataset.range)));
