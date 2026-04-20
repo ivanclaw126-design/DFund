@@ -133,6 +133,11 @@ def enrich(rows):
     rets = [rows[i]['unit_nav']/rows[i-1]['unit_nav'] - 1 for i in range(1, len(rows))]
     mean = sum(rets)/len(rets)
     var = sum((x-mean)**2 for x in rets)/(len(rets)-1) if len(rets) > 1 else 0
+    since_inception = last / first - 1
+    start_date = dt.date.fromisoformat(rows[0]['valuation_date'])
+    end_date = dt.date.fromisoformat(rows[-1]['valuation_date'])
+    elapsed_days = max((end_date - start_date).days, 0)
+    annualized_return_since_inception = ((last / first) ** (365 / elapsed_days) - 1) if elapsed_days > 0 else since_inception
     peak = rows[0]
     max_dd = 0
     start = end = rows[0]
@@ -148,7 +153,8 @@ def enrich(rows):
         'metrics': {
             'latest_nav': last,
             'latest_date': rows[-1]['valuation_date'],
-            'since_inception': last / first - 1,
+            'since_inception': since_inception,
+            'annualized_return_since_inception': annualized_return_since_inception,
             'last_5d': rows[-1]['unit_nav'] / rows[-6]['unit_nav'] - 1 if len(rows) > 5 else 0,
             'last_20d': rows[-1]['unit_nav'] / rows[-21]['unit_nav'] - 1 if len(rows) > 20 else 0,
             'last_60d': rows[-1]['unit_nav'] / rows[-61]['unit_nav'] - 1 if len(rows) > 60 else 0,
