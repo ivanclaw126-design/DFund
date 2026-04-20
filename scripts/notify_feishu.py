@@ -10,22 +10,29 @@ TARGET = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
 
 
 def send_feishu(text: str):
-    try:
-        result = subprocess.run(
-            ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
-        if result.returncode == 0:
-            print(f'[OK] sent to {TARGET} via openclaw message send')
-            return True
-        err = (result.stderr or result.stdout or '').strip()
-        print(f'[ERR] openclaw message send: {err}')
-    except FileNotFoundError:
-        print('[ERR] openclaw command not found')
-    except Exception as e:
-        print(f'[ERR] failed: {e}')
+    candidates = [
+        ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
+        ['openclaw', 'message', 'send', '--channel', 'feishu', '-t', TARGET, '-m', text],
+    ]
+
+    for cmd in candidates:
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                print(f"[OK] sent to {TARGET} via: {' '.join(cmd[:4])} ...")
+                return True
+            err = (result.stderr or result.stdout or '').strip()
+            print(f"[ERR] {' '.join(cmd[:4])} ...: {err}")
+        except FileNotFoundError:
+            print('[ERR] openclaw command not found')
+            break
+        except Exception as e:
+            print(f'[ERR] failed: {e}')
 
     print(f'[LOG] Would send: {text[:100]}')
     return False

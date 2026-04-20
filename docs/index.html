@@ -1272,19 +1272,37 @@
       return { sharpe, sortino, calmar, winRate };
     }
 
+    function calculateSinceInceptionAnnualizedReturn(rows, metrics) {
+      if (typeof metrics?.annualized_return_since_inception === 'number') {
+        return metrics.annualized_return_since_inception;
+      }
+      if (!rows || rows.length < 2) {
+        return metrics?.since_inception ?? 0;
+      }
+      const start = new Date(`${rows[0].valuation_date}T00:00:00`);
+      const end = new Date(`${rows[rows.length - 1].valuation_date}T00:00:00`);
+      const elapsedMs = end - start;
+      const elapsedDays = elapsedMs / (1000 * 60 * 60 * 24);
+      if (elapsedDays <= 0) {
+        return metrics?.since_inception ?? 0;
+      }
+      return Math.pow(rows[rows.length - 1].unit_nav / rows[0].unit_nav, 365 / elapsedDays) - 1;
+    }
+
     function applyFundConfig() {
       data = fundConfigs[currentFund].rows;
       filtered = [...data].sort((a, b) => b.valuation_date.localeCompare(a.valuation_date));
       currentSeries = chartModeByFund[currentFund] || 'compare';
       document.querySelectorAll('.pill').forEach(x => x.classList.toggle('active', x.dataset.series === currentSeries));
       const m = fundConfigs[currentFund].metrics;
+      const annualizedSinceInception = calculateSinceInceptionAnnualizedReturn(data, m);
       document.getElementById('heroTitle').textContent = `${fundConfigs[currentFund].name}`;
       document.getElementById('heroSub').textContent = `基于邮件抓取的 ${data.length} 个估值日样本，覆盖 ${data[0].valuation_date} 至 ${data[data.length - 1].valuation_date}。`;
       document.getElementById('lastUpdatedText').textContent = `最后更新时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
       document.getElementById('metricGrid').innerHTML = `
         <div class="metric-card"><div class="metric-label">最新单位净值</div><div class="metric-value">${fmtNav(m.latest_nav)}</div><div class="metric-note">截至 ${m.latest_date}</div></div>
         <div class="metric-card"><div class="metric-label">成立以来收益</div><div class="metric-value ${m.since_inception >= 0 ? 'pos' : 'neg'}">${fmtPct(m.since_inception)}</div><div class="metric-note">相对首个样本日</div></div>
-        <div class="metric-card"><div class="metric-label">近 20 个估值日</div><div class="metric-value ${m.last_20d >= 0 ? 'pos' : 'neg'}">${fmtPct(m.last_20d)}</div><div class="metric-note">短中期表现</div></div>
+        <div class="metric-card"><div class="metric-label">成立以来年化</div><div class="metric-value ${annualizedSinceInception >= 0 ? 'pos' : 'neg'}">${fmtPct(annualizedSinceInception)}</div><div class="metric-note">由成立以来收益折算</div></div>
         <div class="metric-card"><div class="metric-label">最大回撤</div><div class="metric-value neg">-${(m.max_drawdown.value * 100).toFixed(2)}%</div><div class="metric-note">${m.max_drawdown.start.valuation_date} → ${m.max_drawdown.end.valuation_date}</div></div>
         <div class="metric-card"><div class="metric-label">年化波动率</div><div class="metric-value">${(m.annualized_vol * 100).toFixed(2)}%</div><div class="metric-note">按样本日频近似</div></div>
         <div class="metric-card"><div class="metric-label">样本区间</div><div class="metric-value">${data.length}</div><div class="metric-note">条记录</div></div>`;
