@@ -904,8 +904,8 @@
     <div class="analytics-grid">
       <!-- Underwater Chart -->
       <section class="analytics-card">
-        <h3>回撤深度图</h3>
-        <div class="card-sub">显示每日净值相对于历史高点的回撤幅度。</div>
+        <h3>回撤曲线 <span style="font-size:11px;font-weight:400;color:var(--body);margin-left:6px;opacity:0.75;">Drawdown Curve</span></h3>
+        <div class="card-sub">显示每日净值相对于历史高点的回撤幅度，用于观察策略的风险暴露与修复能力。</div>
         <div class="analytics-shell" id="underwaterShell">
           <canvas id="underwaterChart"></canvas>
           <div class="analytics-tooltip" id="underwaterTooltip"></div>
@@ -915,8 +915,8 @@
 
       <!-- Regime Panel -->
       <section class="analytics-card" style="border-left: 3px solid #533afd;">
-        <h3 style="display:flex;align-items:center;gap:8px;">体制分析 <span style="font-size:10px;background:#533afd;color:#fff;padding:2px 6px;border-radius:3px;">核心洞察</span></h3>
-        <div class="card-sub">股市涨跌时，基金如何反应？选择基准指数查看不同市场环境下的基金表现。</div>
+        <h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">市场环境分析 <span style="font-size:11px;font-weight:400;color:var(--body);opacity:0.75;">Market Regime Analysis</span> <span style="font-size:10px;background:#533afd;color:#fff;padding:2px 6px;border-radius:3px;">核心洞察</span></h3>
+        <div class="card-sub">按不同市场环境划分样本，观察基金在上涨、下跌与压力区间中的平均表现与胜率。</div>
         <div class="regime-selector">
           <select id="regimeBenchmark">
             <option value="沪深300">沪深300</option>
@@ -946,8 +946,8 @@
     <div class="analytics-grid">
       <!-- Scatter Plot -->
       <section class="analytics-card">
-        <h3>收益相关性散点图</h3>
-        <div class="card-sub">每日基金收益 vs 基准收益。回归线显示相关性强度。</div>
+        <h3>收益相关性分析 <span style="font-size:11px;font-weight:400;color:var(--body);margin-left:6px;opacity:0.75;">Return Correlation</span></h3>
+        <div class="card-sub">每日基金收益 vs 基准收益。散点分布与回归线用于观察收益联动性与风格偏离。</div>
         <div class="regime-selector">
           <select id="scatterBenchmark">
             <option value="沪深300">沪深300</option>
@@ -965,8 +965,8 @@
 
       <!-- Rolling Beta/Correlation -->
       <section class="analytics-card">
-        <h3>滚动相关性指标</h3>
-        <div class="card-sub">20日滚动 Beta 和相关性，观察基金与股市依赖关系的稳定性。</div>
+        <h3>市场敏感性分析 <span style="font-size:11px;font-weight:400;color:var(--body);margin-left:6px;opacity:0.75;">Beta & Rolling Correlation</span></h3>
+        <div class="card-sub">20日滚动 Beta 和相关性，观察基金与股市暴露及依赖关系的稳定性。</div>
         <div class="regime-selector">
           <select id="rollingBenchmark">
             <option value="沪深300">沪深300</option>
@@ -985,8 +985,8 @@
 
     <!-- Stress Days Table -->
     <section class="stress-section">
-      <h3>压力日分析</h3>
-      <div class="section-sub">查看市场或基金最差交易日的详细表现，验证极端情况下的对冲效果。</div>
+      <h3>压力测试 <span style="font-size:11px;font-weight:400;color:var(--body);margin-left:6px;opacity:0.75;">Stress Test</span></h3>
+      <div class="section-sub">查看市场或基金最差交易日的详细表现，验证极端情况下的防御能力与对冲效果。</div>
       <div class="stress-toolbar">
         <div class="stress-tabs">
           <button class="stress-tab active" data-stress="benchmark">基准最差日</button>
