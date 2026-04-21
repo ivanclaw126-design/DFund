@@ -5,6 +5,7 @@ playground.html
 CLAUDE.md
 .gstack/
 .worktrees/
+cache/
 
 # Python
 __pycache__/
