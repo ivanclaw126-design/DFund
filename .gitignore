@@ -4,3 +4,10 @@ mock_data.js
 playground.html
 CLAUDE.md
 .gstack/
+.worktrees/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+requirements.txt
