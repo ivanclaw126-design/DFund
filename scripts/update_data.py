@@ -40,12 +40,73 @@ def notify_failure(message: str):
 
 
 def fetch_mail_rows(code: str, subject: str):
-    data_file = DATA_DIR / f'{code.lower()}_nav_enriched.json'
-    if data_file.exists():
-        payload = json.loads(data_file.read_text(encoding='utf-8'))
-        return payload['rows']
-
-    raise RuntimeError(f'missing cached data for {code}')
+    script = f'''
+    tell application "Mail"
+      set targetSubject to "{subject}"
+      set targetMailbox to mailbox "INBOX" of account "{ACCOUNT}"
+      set oldDelims to AppleScript's text item delimiters
+      set AppleScript's text item delimiters to "§§REC§§"
+      set outLines to {{}}
+      repeat with m in (messages of targetMailbox)
+        try
+          set s to subject of m as string
+          if s contains targetSubject then
+            set d to (date received of m) as string
+            set c to content of m as string
+            set c to my replaceText(return, " ", c)
+            set c to my replaceText(linefeed, " ", c)
+            set c to my replaceText(tab, " ", c)
+            set c to my replaceText("§§REC§§", " ", c)
+            set end of outLines to (d & "§§FLD§§" & s & "§§FLD§§" & c)
+          end if
+        end try
+      end repeat
+      set resultText to outLines as string
+      set AppleScript's text item delimiters to oldDelims
+      return resultText
+    end tell
+    on replaceText(find, repl, txt)
+      set oldDelims to AppleScript's text item delimiters
+      set AppleScript's text item delimiters to find
+      set parts to every text item of txt
+      set AppleScript's text item delimiters to repl
+      set txt to parts as string
+      set AppleScript's text item delimiters to oldDelims
+      return txt
+    end replaceText
+    '''
+    res = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
+    if res.returncode != 0:
+        raise RuntimeError(res.stderr)
+    records = [r for r in res.stdout.strip().split('§§REC§§') if r.strip()]
+    rows = []
+    pattern = re.compile(rf'{code}\(总\).*?(\d{{4}}-\d{{2}}-\d{{2}})\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+{code}')
+    fallback = re.compile(rf'(\d{{4}}-\d{{2}}-\d{{2}})\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+{code}')
+    for rec in records:
+        parts = rec.split('§§FLD§§')
+        if len(parts) != 3:
+            continue
+        received_at, sub, content = parts
+        content = re.sub(r'\s+', ' ', content)
+        m = pattern.search(content) or fallback.search(content)
+        if not m:
+            continue
+        valuation_date, unit_nav, accum_nav, nav_assets, paid_in_capital = m.groups()
+        rows.append({
+            'received_at': received_at,
+            'subject': sub,
+            'valuation_date': valuation_date,
+            'unit_nav': float(unit_nav),
+            'accum_nav': float(accum_nav),
+            'nav_assets': float(nav_assets),
+            'paid_in_capital': float(paid_in_capital),
+        })
+    rows.sort(key=lambda x: x['valuation_date'])
+    if rows:
+        first = rows[0]['unit_nav']
+        for r in rows:
+            r['cum_return'] = round(r['unit_nav'] / first - 1, 8)
+    return rows
 
 
 def enrich(rows):
