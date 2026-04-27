@@ -1,66 +1,6 @@
 {
   "rows": [
     {
-      "received_at": "2025年12月24日 星期三 20:01:04",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-24",
-      "valuation_date": "2025-12-24",
-      "unit_nav": 1.0065,
-      "accum_nav": 1.0065,
-      "nav_assets": 13128910.78,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.0
-    },
-    {
-      "received_at": "2025年12月25日 星期四 19:31:57",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-25",
-      "valuation_date": "2025-12-25",
-      "unit_nav": 1.011,
-      "accum_nav": 1.011,
-      "nav_assets": 13186902.76,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.00447094
-    },
-    {
-      "received_at": "2025年12月26日 星期五 19:42:48",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-26",
-      "valuation_date": "2025-12-26",
-      "unit_nav": 1.0122,
-      "accum_nav": 1.0122,
-      "nav_assets": 13203328.98,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.00566319
-    },
-    {
-      "received_at": "2025年12月29日 星期一 19:40:38",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-29",
-      "valuation_date": "2025-12-29",
-      "unit_nav": 1.0108,
-      "accum_nav": 1.0108,
-      "nav_assets": 13184624.53,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.00427223
-    },
-    {
-      "received_at": "2025年12月30日 星期二 19:31:57",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-30",
-      "valuation_date": "2025-12-30",
-      "unit_nav": 1.0123,
-      "accum_nav": 1.0123,
-      "nav_assets": 13204237.31,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.00576254
-    },
-    {
-      "received_at": "2025年12月31日 星期三 19:42:22",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2025-12-31",
-      "valuation_date": "2025-12-31",
-      "unit_nav": 1.0104,
-      "accum_nav": 1.0104,
-      "nav_assets": 13179407.39,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.00387481
-    },
-    {
       "received_at": "2026年1月5日 星期一 19:30:57",
       "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-05",
       "valuation_date": "2026-01-05",
@@ -68,7 +8,7 @@
       "accum_nav": 1.02,
       "nav_assets": 13305051.94,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01341282
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年1月6日 星期二 19:41:43",
@@ -78,7 +18,7 @@
       "accum_nav": 1.0279,
       "nav_assets": 13407277.24,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.0212618
+      "cum_return": 0.0077451
     },
     {
       "received_at": "2026年1月7日 星期三 19:41:19",
@@ -88,7 +28,7 @@
       "accum_nav": 1.0276,
       "nav_assets": 13403227.7,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.02096374
+      "cum_return": 0.00745098
     },
     {
       "received_at": "2026年1月8日 星期四 19:31:35",
@@ -98,7 +38,7 @@
       "accum_nav": 1.0251,
       "nav_assets": 13370812.87,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01847988
+      "cum_return": 0.005
     },
     {
       "received_at": "2026年1月9日 星期五 21:00:10",
@@ -108,7 +48,7 @@
       "accum_nav": 1.0262,
       "nav_assets": 13386133.59,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01957278
+      "cum_return": 0.00607843
     },
     {
       "received_at": "2026年1月12日 星期一 19:30:33",
@@ -118,7 +58,7 @@
       "accum_nav": 1.0298,
       "nav_assets": 13431894.56,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.02314953
+      "cum_return": 0.00960784
     },
     {
       "received_at": "2026年1月13日 星期二 19:31:22",
@@ -128,7 +68,7 @@
       "accum_nav": 1.0257,
       "nav_assets": 13379361.79,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01907601
+      "cum_return": 0.00558824
     },
     {
       "received_at": "2026年1月14日 星期三 19:31:01",
@@ -138,7 +78,7 @@
       "accum_nav": 1.0249,
       "nav_assets": 13368027.91,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01828117
+      "cum_return": 0.00480392
     },
     {
       "received_at": "2026年1月15日 星期四 19:30:39",
@@ -148,7 +88,7 @@
       "accum_nav": 1.0251,
       "nav_assets": 13371521.11,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01847988
+      "cum_return": 0.005
     },
     {
       "received_at": "2026年1月16日 星期五 20:00:09",
@@ -158,7 +98,7 @@
       "accum_nav": 1.0228,
       "nav_assets": 13340629.39,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01619473
+      "cum_return": 0.0027451
     },
     {
       "received_at": "2026年1月19日 星期一 19:31:24",
@@ -168,7 +108,7 @@
       "accum_nav": 1.0247,
       "nav_assets": 13365590.18,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01808246
+      "cum_return": 0.00460784
     },
     {
       "received_at": "2026年1月20日 星期二 19:31:23",
@@ -178,7 +118,7 @@
       "accum_nav": 1.0214,
       "nav_assets": 13323252.75,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01480378
+      "cum_return": 0.00137255
     },
     {
       "received_at": "2026年1月21日 星期三 19:31:33",
@@ -188,7 +128,7 @@
       "accum_nav": 1.0257,
       "nav_assets": 13379107.07,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01907601
+      "cum_return": 0.00558824
     },
     {
       "received_at": "2026年1月22日 星期四 19:40:37",
@@ -198,7 +138,7 @@
       "accum_nav": 1.0249,
       "nav_assets": 13368479.45,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.01828117
+      "cum_return": 0.00480392
     },
     {
       "received_at": "2026年1月23日 星期五 19:33:40",
@@ -208,27 +148,7 @@
       "accum_nav": 1.0282,
       "nav_assets": 13412251.73,
       "paid_in_capital": 13043814.5,
-      "cum_return": 0.02155986
-    },
-    {
-      "received_at": "2026年1月26日 星期一 19:31:12",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-26",
-      "valuation_date": "2026-01-26",
-      "unit_nav": 1.0276,
-      "accum_nav": 1.0276,
-      "nav_assets": 13403426.1,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.02096374
-    },
-    {
-      "received_at": "2026年1月27日 星期二 19:30:23",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-27",
-      "valuation_date": "2026-01-27",
-      "unit_nav": 1.0295,
-      "accum_nav": 1.0295,
-      "nav_assets": 13428143.14,
-      "paid_in_capital": 13043814.5,
-      "cum_return": 0.02285147
+      "cum_return": 0.00803922
     },
     {
       "received_at": "2026年1月28日 星期三 19:31:23",
@@ -238,7 +158,7 @@
       "accum_nav": 1.0305,
       "nav_assets": 16444102.21,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.02384501
+      "cum_return": 0.01029412
     },
     {
       "received_at": "2026年1月29日 星期四 19:40:25",
@@ -248,7 +168,7 @@
       "accum_nav": 1.0309,
       "nav_assets": 16451566.28,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.02424242
+      "cum_return": 0.01068627
     },
     {
       "received_at": "2026年1月30日 星期五 19:31:33",
@@ -258,7 +178,7 @@
       "accum_nav": 1.0222,
       "nav_assets": 16312700.27,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.01559861
+      "cum_return": 0.00215686
     },
     {
       "received_at": "2026年2月2日 星期一 19:44:46",
@@ -268,7 +188,7 @@
       "accum_nav": 1.004,
       "nav_assets": 16021051.64,
       "paid_in_capital": 15957850.44,
-      "cum_return": -0.00248385
+      "cum_return": -0.01568627
     },
     {
       "received_at": "2026年2月3日 星期二 19:31:14",
@@ -278,7 +198,7 @@
       "accum_nav": 1.013,
       "nav_assets": 16164790.52,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.00645802
+      "cum_return": -0.00686275
     },
     {
       "received_at": "2026年2月4日 星期三 21:20:02",
@@ -288,7 +208,7 @@
       "accum_nav": 1.0157,
       "nav_assets": 16208752.95,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.00914059
+      "cum_return": -0.00421569
     },
     {
       "received_at": "2026年2月5日 星期四 19:43:14",
@@ -298,7 +218,7 @@
       "accum_nav": 1.0126,
       "nav_assets": 16159713.53,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.00606061
+      "cum_return": -0.0072549
     },
     {
       "received_at": "2026年2月6日 星期五 19:43:16",
@@ -308,7 +228,7 @@
       "accum_nav": 1.012,
       "nav_assets": 16149577.42,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.00546448
+      "cum_return": -0.00784314
     },
     {
       "received_at": "2026年2月9日 星期一 19:41:40",
@@ -318,7 +238,7 @@
       "accum_nav": 1.0196,
       "nav_assets": 16270327.24,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.0130154
+      "cum_return": -0.00039216
     },
     {
       "received_at": "2026年2月10日 星期二 19:41:47",
@@ -328,7 +248,7 @@
       "accum_nav": 1.0198,
       "nav_assets": 16273485.23,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.01321411
+      "cum_return": -0.00019608
     },
     {
       "received_at": "2026年2月11日 星期三 19:41:43",
@@ -338,7 +258,7 @@
       "accum_nav": 1.0194,
       "nav_assets": 16266637.97,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.01281669
+      "cum_return": -0.00058824
     },
     {
       "received_at": "2026年2月12日 星期四 19:41:42",
@@ -348,7 +268,7 @@
       "accum_nav": 1.021,
       "nav_assets": 16293556.13,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.01440636
+      "cum_return": 0.00098039
     },
     {
       "received_at": "2026年2月13日 星期五 19:42:56",
@@ -358,7 +278,7 @@
       "accum_nav": 1.0141,
       "nav_assets": 16182857.81,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.00755092
+      "cum_return": -0.00578431
     },
     {
       "received_at": "2026年2月24日 星期二 20:01:10",
@@ -368,7 +288,7 @@
       "accum_nav": 1.0173,
       "nav_assets": 16233938.42,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.01073025
+      "cum_return": -0.00264706
     },
     {
       "received_at": "2026年2月25日 星期三 19:41:43",
@@ -378,7 +298,7 @@
       "accum_nav": 1.0234,
       "nav_assets": 16313463.64,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.01679086
+      "cum_return": 0.00333333
     },
     {
       "received_at": "2026年2月26日 星期四 19:41:06",
@@ -388,7 +308,7 @@
       "accum_nav": 1.0229,
       "nav_assets": 16305135.7,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.01629409
+      "cum_return": 0.00284314
     },
     {
       "received_at": "2026年2月27日 星期五 19:43:36",
@@ -398,7 +318,7 @@
       "accum_nav": 1.0248,
       "nav_assets": 16336148.18,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.01818182
+      "cum_return": 0.00470588
     },
     {
       "received_at": "2026年3月2日 星期一 20:50:34",
@@ -408,7 +328,7 @@
       "accum_nav": 1.0239,
       "nav_assets": 16321531.11,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.01728763
+      "cum_return": 0.00382353
     },
     {
       "received_at": "2026年3月3日 星期二 19:41:31",
@@ -418,7 +338,7 @@
       "accum_nav": 1.0159,
       "nav_assets": 16193614.57,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00933929
+      "cum_return": -0.00401961
     },
     {
       "received_at": "2026年3月4日 星期三 19:41:00",
@@ -428,7 +348,7 @@
       "accum_nav": 1.0124,
       "nav_assets": 16138674.39,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.0058619
+      "cum_return": -0.00745098
     },
     {
       "received_at": "2026年3月5日 星期四 19:41:54",
@@ -438,7 +358,7 @@
       "accum_nav": 1.0129,
       "nav_assets": 16145684.73,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00635867
+      "cum_return": -0.00696078
     },
     {
       "received_at": "2026年3月6日 星期五 19:41:48",
@@ -448,7 +368,7 @@
       "accum_nav": 1.0156,
       "nav_assets": 16189369.85,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00904123
+      "cum_return": -0.00431373
     },
     {
       "received_at": "2026年3月9日 星期一 19:41:13",
@@ -458,7 +378,7 @@
       "accum_nav": 1.0101,
       "nav_assets": 16101545.32,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00357675
+      "cum_return": -0.00970588
     },
     {
       "received_at": "2026年3月10日 星期二 19:30:59",
@@ -468,7 +388,7 @@
       "accum_nav": 1.0148,
       "nav_assets": 16177241.12,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.0082464
+      "cum_return": -0.00509804
     },
     {
       "received_at": "2026年3月11日 星期三 19:41:30",
@@ -478,7 +398,7 @@
       "accum_nav": 1.0163,
       "nav_assets": 16200576.67,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00973671
+      "cum_return": -0.00362745
     },
     {
       "received_at": "2026年3月12日 星期四 19:40:21",
@@ -488,7 +408,7 @@
       "accum_nav": 1.0139,
       "nav_assets": 16162511.25,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00735221
+      "cum_return": -0.00598039
     },
     {
       "received_at": "2026年3月13日 星期五 19:41:44",
@@ -498,7 +418,7 @@
       "accum_nav": 1.0137,
       "nav_assets": 16159687.42,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.0071535
+      "cum_return": -0.00617647
     },
     {
       "received_at": "2026年3月16日 星期一 19:30:17",
@@ -508,7 +428,7 @@
       "accum_nav": 1.0134,
       "nav_assets": 16153816.48,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00685544
+      "cum_return": -0.00647059
     },
     {
       "received_at": "2026年3月17日 星期二 19:41:15",
@@ -518,7 +438,7 @@
       "accum_nav": 1.012,
       "nav_assets": 16132732.97,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00546448
+      "cum_return": -0.00784314
     },
     {
       "received_at": "2026年3月18日 星期三 19:41:34",
@@ -528,7 +448,7 @@
       "accum_nav": 1.0115,
       "nav_assets": 16123791.57,
       "paid_in_capital": 15940844.64,
-      "cum_return": 0.00496771
+      "cum_return": -0.00833333
     },
     {
       "received_at": "2026年3月19日 星期四 19:30:45",
@@ -538,7 +458,7 @@
       "accum_nav": 1.0059,
       "nav_assets": 16035529.31,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00059613
+      "cum_return": -0.01382353
     },
     {
       "received_at": "2026年3月20日 星期五 19:31:31",
@@ -548,7 +468,7 @@
       "accum_nav": 1.0063,
       "nav_assets": 16041590.69,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00019871
+      "cum_return": -0.01343137
     },
     {
       "received_at": "2026年3月24日 星期二 08:30:31",
@@ -558,7 +478,7 @@
       "accum_nav": 0.9948,
       "nav_assets": 15857368.07,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.01162444
+      "cum_return": -0.02470588
     },
     {
       "received_at": "2026年3月24日 星期二 19:41:09",
@@ -568,7 +488,7 @@
       "accum_nav": 0.9975,
       "nav_assets": 15901265.47,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00894188
+      "cum_return": -0.02205882
     },
     {
       "received_at": "2026年3月25日 星期三 19:30:50",
@@ -578,7 +498,7 @@
       "accum_nav": 1.0027,
       "nav_assets": 15983900.88,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00377546
+      "cum_return": -0.01696078
     },
     {
       "received_at": "2026年3月26日 星期四 19:31:44",
@@ -588,7 +508,7 @@
       "accum_nav": 0.9986,
       "nav_assets": 15918684.38,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00784898
+      "cum_return": -0.02098039
     },
     {
       "received_at": "2026年3月27日 星期五 19:31:42",
@@ -598,7 +518,7 @@
       "accum_nav": 1.0,
       "nav_assets": 15941484.86,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00645802
+      "cum_return": -0.01960784
     },
     {
       "received_at": "2026年3月30日 星期一 19:31:27",
@@ -608,7 +528,7 @@
       "accum_nav": 1.0009,
       "nav_assets": 15954630.62,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00556384
+      "cum_return": -0.01872549
     },
     {
       "received_at": "2026年3月31日 星期二 19:31:53",
@@ -618,7 +538,7 @@
       "accum_nav": 0.9985,
       "nav_assets": 15917255.31,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.00794834
+      "cum_return": -0.02107843
     },
     {
       "received_at": "2026年4月1日 星期三 19:31:34",
@@ -628,7 +548,7 @@
       "accum_nav": 1.0041,
       "nav_assets": 15599025.21,
       "paid_in_capital": 15535844.64,
-      "cum_return": -0.0023845
+      "cum_return": -0.01558824
     },
     {
       "received_at": "2026年4月2日 星期四 19:35:25",
@@ -638,7 +558,7 @@
       "accum_nav": 0.9977,
       "nav_assets": 15499684.87,
       "paid_in_capital": 15535844.64,
-      "cum_return": -0.00874317
+      "cum_return": -0.02186275
     },
     {
       "received_at": "2026年4月3日 星期五 22:50:07",
@@ -648,7 +568,7 @@
       "accum_nav": 0.9954,
       "nav_assets": 15464848.6,
       "paid_in_capital": 15535844.64,
-      "cum_return": -0.01102832
+      "cum_return": -0.02411765
     },
     {
       "received_at": "2026年4月7日 星期二 19:51:08",
@@ -658,7 +578,7 @@
       "accum_nav": 0.996,
       "nav_assets": 15474009.4,
       "paid_in_capital": 15535844.64,
-      "cum_return": -0.01043219
+      "cum_return": -0.02352941
     },
     {
       "received_at": "2026年4月8日 星期三 19:51:03",
@@ -668,7 +588,7 @@
       "accum_nav": 1.0112,
       "nav_assets": 15709109.99,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.00466965
+      "cum_return": -0.00862745
     },
     {
       "received_at": "2026年4月9日 星期四 19:31:22",
@@ -678,7 +598,7 @@
       "accum_nav": 1.0077,
       "nav_assets": 15654765.11,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.00119225
+      "cum_return": -0.01205882
     },
     {
       "received_at": "2026年4月10日 星期五 19:33:52",
@@ -688,7 +608,7 @@
       "accum_nav": 1.015,
       "nav_assets": 15769322.48,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.00844511
+      "cum_return": -0.00490196
     },
     {
       "received_at": "2026年4月13日 星期一 19:20:27",
@@ -698,7 +618,7 @@
       "accum_nav": 1.0148,
       "nav_assets": 15765280.55,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.0082464
+      "cum_return": -0.00509804
     },
     {
       "received_at": "2026年4月14日 星期二 19:21:36",
@@ -708,7 +628,7 @@
       "accum_nav": 1.0194,
       "nav_assets": 15837533.37,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01281669
+      "cum_return": -0.00058824
     },
     {
       "received_at": "2026年4月15日 星期三 19:31:42",
@@ -718,7 +638,7 @@
       "accum_nav": 1.0204,
       "nav_assets": 15852052.54,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01381023
+      "cum_return": 0.00039216
     },
     {
       "received_at": "2026年4月16日 星期四 19:41:41",
@@ -728,7 +648,7 @@
       "accum_nav": 1.0242,
       "nav_assets": 15911675.45,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01758569
+      "cum_return": 0.00411765
     },
     {
       "received_at": "2026年4月17日 星期五 19:31:34",
@@ -738,7 +658,7 @@
       "accum_nav": 1.0233,
       "nav_assets": 15897316.02,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01669151
+      "cum_return": 0.00323529
     },
     {
       "received_at": "2026年4月20日 星期一 19:41:05",
@@ -748,7 +668,7 @@
       "accum_nav": 1.0252,
       "nav_assets": 15928114.29,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01857923
+      "cum_return": 0.00509804
     },
     {
       "received_at": "2026年4月21日 星期二 19:40:37",
@@ -758,7 +678,7 @@
       "accum_nav": 1.026,
       "nav_assets": 15940237.52,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01937407
+      "cum_return": 0.00588235
     },
     {
       "received_at": "2026年4月22日 星期三 19:41:45",
@@ -768,7 +688,7 @@
       "accum_nav": 1.0288,
       "nav_assets": 15983243.17,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.02215599
+      "cum_return": 0.00862745
     },
     {
       "received_at": "2026年4月23日 星期四 19:42:28",
@@ -778,7 +698,7 @@
       "accum_nav": 1.0266,
       "nav_assets": 15949095.59,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01997019
+      "cum_return": 0.00647059
     },
     {
       "received_at": "2026年4月24日 星期五 19:25:49",
@@ -788,18 +708,18 @@
       "accum_nav": 1.0265,
       "nav_assets": 15946969.57,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01987084
+      "cum_return": 0.00637255
     }
   ],
   "metrics": {
     "latest_nav": 1.0265,
     "latest_date": "2026-04-24",
-    "since_inception": 0.019870839542970753,
-    "annualized_return_since_inception": 0.06114996968922237,
+    "since_inception": 0.0063725490196078205,
+    "annualized_return_since_inception": 0.021499416816550543,
     "last_5d": 0.003127137691781412,
     "last_20d": 0.027939114760664907,
-    "last_60d": 0.0007799551525786708,
-    "annualized_vol": 0.07442700796823992,
+    "last_60d": 0.0017566116912266505,
+    "annualized_vol": 0.07592137067402753,
     "max_nav": {
       "received_at": "2026年1月29日 星期四 19:40:25",
       "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-01-29",
@@ -808,7 +728,7 @@
       "accum_nav": 1.0309,
       "nav_assets": 16451566.28,
       "paid_in_capital": 15957850.44,
-      "cum_return": 0.02424242
+      "cum_return": 0.01068627
     },
     "min_nav": {
       "received_at": "2026年3月24日 星期二 08:30:31",
@@ -818,7 +738,7 @@
       "accum_nav": 0.9948,
       "nav_assets": 15857368.07,
       "paid_in_capital": 15940844.64,
-      "cum_return": -0.01162444
+      "cum_return": -0.02470588
     },
     "max_drawdown": {
       "value": 0.035017945484527996,
@@ -830,7 +750,7 @@
         "accum_nav": 1.0309,
         "nav_assets": 16451566.28,
         "paid_in_capital": 15957850.44,
-        "cum_return": 0.02424242
+        "cum_return": 0.01068627
       },
       "end": {
         "received_at": "2026年3月24日 星期二 08:30:31",
@@ -840,7 +760,7 @@
         "accum_nav": 0.9948,
         "nav_assets": 15857368.07,
         "paid_in_capital": 15940844.64,
-        "cum_return": -0.01162444
+        "cum_return": -0.02470588
       }
     }
   }
