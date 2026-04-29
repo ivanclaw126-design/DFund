@@ -40,14 +40,18 @@ def notify_failure(message: str):
 
 
 def fetch_mail_rows(code: str, subject: str):
+    # Only scan emails from the last 7 days to avoid OOM on large mailboxes
+    cutoff = (dt.datetime.now() - dt.timedelta(days=7)).strftime('%B %d, %Y %I:%M:%S %p')
     script = f'''
     tell application "Mail"
       set targetSubject to "{subject}"
       set targetMailbox to mailbox "INBOX" of account "{ACCOUNT}"
+      set cutoffDate to current date
+      set cutoffDate to cutoffDate - (7 * days)
       set oldDelims to AppleScript's text item delimiters
       set AppleScript's text item delimiters to "§§REC§§"
       set outLines to {{}}
-      repeat with m in (messages of targetMailbox)
+      repeat with m in (messages of targetMailbox whose date received ≥ cutoffDate)
         try
           set s to subject of m as string
           if s contains targetSubject then
@@ -204,13 +208,36 @@ def fetch_benchmarks(start_date: str, end_date: str):
     return out
 
 
+def load_existing_rows(code: str):
+    """Load existing rows from JSON file if it exists."""
+    path = DATA_DIR / f'{code.lower()}_nav_enriched.json'
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding='utf-8'))
+            return data.get('rows', [])
+        except Exception:
+            pass
+    return []
+
+
+def merge_rows(existing_rows, new_rows):
+    """Merge new rows into existing, deduplicating by valuation_date."""
+    by_date = {r['valuation_date']: r for r in existing_rows}
+    for r in new_rows:
+        by_date[r['valuation_date']] = r  # new data overwrites if same date
+    merged = sorted(by_date.values(), key=lambda x: x['valuation_date'])
+    return merged
+
+
 def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     all_funds = {}
     min_date = None
     max_date = None
     for code, subject in FUNDS.items():
-        rows = fetch_mail_rows(code, subject)
+        existing_rows = load_existing_rows(code)
+        new_rows = fetch_mail_rows(code, subject)
+        rows = merge_rows(existing_rows, new_rows)
         enriched = enrich(rows)
         (DATA_DIR / f'{code.lower()}_nav_enriched.json').write_text(json.dumps(enriched, ensure_ascii=False, indent=2), encoding='utf-8')
         all_funds[code] = {'name': subject.split('_')[1], 'code': code, **enriched}

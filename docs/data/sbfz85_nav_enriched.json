@@ -778,7 +778,7 @@
       "accum_nav": 1.0266,
       "nav_assets": 15949095.59,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01997019
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年4月24日 星期五 19:25:49",
@@ -788,7 +788,7 @@
       "accum_nav": 1.0265,
       "nav_assets": 15946969.57,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01987084
+      "cum_return": -9.741e-05
     },
     {
       "received_at": "2026年4月27日 星期一 19:40:55",
@@ -798,7 +798,7 @@
       "accum_nav": 1.0261,
       "nav_assets": 15941269.46,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01947342
+      "cum_return": -0.00048704
     },
     {
       "received_at": "2026年4月28日 星期二 19:31:11",
@@ -808,7 +808,7 @@
       "accum_nav": 1.0236,
       "nav_assets": 15901863.87,
       "paid_in_capital": 15535844.64,
-      "cum_return": 0.01698957
+      "cum_return": -0.00292227
     },
     {
       "received_at": "2026年4月29日 星期三 19:31:18",
@@ -818,7 +818,7 @@
       "accum_nav": 1.0286,
       "nav_assets": 15974920.66,
       "paid_in_capital": 15530844.64,
-      "cum_return": 0.02195728
+      "cum_return": 0.00194818
     }
   ],
   "metrics": {
