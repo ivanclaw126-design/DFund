@@ -40,14 +40,14 @@ def notify_failure(message: str):
 
 
 def fetch_mail_rows(code: str, subject: str):
-    # Only scan emails from the last 7 days to avoid OOM on large mailboxes.
+    # Only scan emails from the last 1 day first; if nothing is found, the existing data remains intact.
     # Keep the scan itself in AppleScript, but add a hard timeout so Mail can't stall the whole job.
     script = f'''
     tell application "Mail"
       set targetSubject to "{subject}"
       set targetMailbox to mailbox "INBOX" of account "{ACCOUNT}"
       set cutoffDate to current date
-      set cutoffDate to cutoffDate - (7 * days)
+      set cutoffDate to cutoffDate - (1 * days)
       set oldDelims to AppleScript's text item delimiters
       set AppleScript's text item delimiters to "§§REC§§"
       set outLines to {{}}
