@@ -13,6 +13,7 @@ def send_feishu(text: str):
     candidates = [
         ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
         ['openclaw', 'message', 'send', '--channel', 'feishu', '-t', TARGET, '-m', text],
+        ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text, '--best-effort'],
     ]
 
     for cmd in candidates:

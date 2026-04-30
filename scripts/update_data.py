@@ -40,8 +40,8 @@ def notify_failure(message: str):
 
 
 def fetch_mail_rows(code: str, subject: str):
-    # Only scan emails from the last 7 days to avoid OOM on large mailboxes
-    cutoff = (dt.datetime.now() - dt.timedelta(days=7)).strftime('%B %d, %Y %I:%M:%S %p')
+    # Only scan emails from the last 7 days to avoid OOM on large mailboxes.
+    # Keep the scan itself in AppleScript, but add a hard timeout so Mail can't stall the whole job.
     script = f'''
     tell application "Mail"
       set targetSubject to "{subject}"
@@ -79,9 +79,12 @@ def fetch_mail_rows(code: str, subject: str):
       return txt
     end replaceText
     '''
-    res = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
+    try:
+        res = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=90)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f'Apple Mail scan timed out for {code}; Mail may be slow or blocked')
     if res.returncode != 0:
-        raise RuntimeError(res.stderr)
+        raise RuntimeError(res.stderr.strip() or f'osascript failed for {code}')
     records = [r for r in res.stdout.strip().split('§§REC§§') if r.strip()]
     rows = []
     pattern = re.compile(rf'{code}\(总\).*?(\d{{4}}-\d{{2}}-\d{{2}})\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+{code}')
