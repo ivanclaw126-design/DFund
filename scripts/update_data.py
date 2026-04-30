@@ -40,52 +40,56 @@ def notify_failure(message: str):
 
 
 def fetch_mail_rows(code: str, subject: str):
-    # Only scan emails from the last 1 day first; if nothing is found, the existing data remains intact.
-    # Keep the scan itself in AppleScript, but add a hard timeout so Mail can't stall the whole job.
-    script = f'''
-    tell application "Mail"
-      set targetSubject to "{subject}"
-      set targetMailbox to mailbox "INBOX" of account "{ACCOUNT}"
-      set cutoffDate to current date
-      set cutoffDate to cutoffDate - (1 * days)
-      set oldDelims to AppleScript's text item delimiters
-      set AppleScript's text item delimiters to "§§REC§§"
-      set outLines to {{}}
-      repeat with m in (messages of targetMailbox whose date received ≥ cutoffDate)
-        try
-          set s to subject of m as string
-          if s contains targetSubject then
-            set d to (date received of m) as string
-            set c to content of m as string
-            set c to my replaceText(return, " ", c)
-            set c to my replaceText(linefeed, " ", c)
-            set c to my replaceText(tab, " ", c)
-            set c to my replaceText("§§REC§§", " ", c)
-            set end of outLines to (d & "§§FLD§§" & s & "§§FLD§§" & c)
-          end if
-        end try
-      end repeat
-      set resultText to outLines as string
-      set AppleScript's text item delimiters to oldDelims
-      return resultText
-    end tell
-    on replaceText(find, repl, txt)
-      set oldDelims to AppleScript's text item delimiters
-      set AppleScript's text item delimiters to find
-      set parts to every text item of txt
-      set AppleScript's text item delimiters to repl
-      set txt to parts as string
-      set AppleScript's text item delimiters to oldDelims
-      return txt
-    end replaceText
-    '''
+    def run_mail_scan(days: int):
+        script = f'''
+        tell application "Mail"
+          set targetSubject to "{subject}"
+          set targetMailbox to mailbox "INBOX" of account "{ACCOUNT}"
+          set cutoffDate to current date
+          set cutoffDate to cutoffDate - ({days} * days)
+          set oldDelims to AppleScript's text item delimiters
+          set AppleScript's text item delimiters to "§§REC§§"
+          set outLines to {{}}
+          repeat with m in (messages of targetMailbox whose date received ≥ cutoffDate)
+            try
+              set s to subject of m as string
+              if s contains targetSubject then
+                set d to (date received of m) as string
+                set c to content of m as string
+                set c to my replaceText(return, " ", c)
+                set c to my replaceText(linefeed, " ", c)
+                set c to my replaceText(tab, " ", c)
+                set c to my replaceText("§§REC§§", " ", c)
+                set end of outLines to (d & "§§FLD§§" & s & "§§FLD§§" & c)
+              end if
+            end try
+          end repeat
+          set resultText to outLines as string
+          set AppleScript's text item delimiters to oldDelims
+          return resultText
+        end tell
+        on replaceText(find, repl, txt)
+          set oldDelims to AppleScript's text item delimiters
+          set AppleScript's text item delimiters to find
+          set parts to every text item of txt
+          set AppleScript's text item delimiters to repl
+          set txt to parts as string
+          set AppleScript's text item delimiters to oldDelims
+          return txt
+        end replaceText
+        '''
+        res = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=60)
+        if res.returncode != 0:
+            raise RuntimeError(res.stderr.strip() or f'osascript failed for {code}')
+        return [r for r in res.stdout.strip().split('§§REC§§') if r.strip()]
+
     try:
-        res = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=90)
+        records = run_mail_scan(1)
     except subprocess.TimeoutExpired:
-        raise RuntimeError(f'Apple Mail scan timed out for {code}; Mail may be slow or blocked')
-    if res.returncode != 0:
-        raise RuntimeError(res.stderr.strip() or f'osascript failed for {code}')
-    records = [r for r in res.stdout.strip().split('§§REC§§') if r.strip()]
+        print(f'[WARN] Mail scan timed out for {code} in 24h window; retrying with today-only window')
+        records = run_mail_scan(0)
+    except Exception as e:
+        raise RuntimeError(f'Apple Mail scan failed for {code}: {e}')
     rows = []
     pattern = re.compile(rf'{code}\(总\).*?(\d{{4}}-\d{{2}}-\d{{2}})\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+{code}')
     fallback = re.compile(rf'(\d{{4}}-\d{{2}}-\d{{2}})\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+{code}')
