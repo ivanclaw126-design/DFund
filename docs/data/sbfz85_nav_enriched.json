@@ -829,26 +829,36 @@
       "nav_assets": 16076161.39,
       "paid_in_capital": 15530844.64,
       "cum_return": 0.0
+    },
+    {
+      "received_at": "2026年5月7日 星期四 19:31:06",
+      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-05-07",
+      "valuation_date": "2026-05-07",
+      "unit_nav": 1.0378,
+      "accum_nav": 1.0378,
+      "nav_assets": 16117163.64,
+      "paid_in_capital": 15530844.64,
+      "cum_return": 0.00260844
     }
   ],
   "metrics": {
-    "latest_nav": 1.0351,
-    "latest_date": "2026-05-06",
-    "since_inception": 0.02841530054644803,
-    "annualized_return_since_inception": 0.07992808618498559,
-    "last_5d": 0.008279758425871808,
-    "last_20d": 0.030873418982173106,
-    "last_60d": 0.005439533754249437,
-    "annualized_vol": 0.0739482751162423,
+    "latest_nav": 1.0378,
+    "latest_date": "2026-05-07",
+    "since_inception": 0.03109786388474922,
+    "annualized_return_since_inception": 0.08699439455013014,
+    "last_5d": 0.011008280565026896,
+    "last_20d": 0.04019244261802157,
+    "last_60d": 0.0070839398350315275,
+    "annualized_vol": 0.07360103437723127,
     "max_nav": {
-      "received_at": "2026年5月6日 星期三 21:10:01",
-      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-05-06",
-      "valuation_date": "2026-05-06",
-      "unit_nav": 1.0351,
-      "accum_nav": 1.0351,
-      "nav_assets": 16076161.39,
+      "received_at": "2026年5月7日 星期四 19:31:06",
+      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-05-07",
+      "valuation_date": "2026-05-07",
+      "unit_nav": 1.0378,
+      "accum_nav": 1.0378,
+      "nav_assets": 16117163.64,
       "paid_in_capital": 15530844.64,
-      "cum_return": 0.0
+      "cum_return": 0.00260844
     },
     "min_nav": {
       "received_at": "2026年3月24日 星期二 08:30:31",
