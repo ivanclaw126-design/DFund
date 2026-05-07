@@ -11,9 +11,8 @@ TARGET = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
 
 def send_feishu(text: str):
     candidates = [
-        ['openclaw', 'message', 'send', '--channel', 'feishu', 'send', '--target', TARGET, '--message', text],
-        ['openclaw', 'message', 'send', '--channel', 'feishu', '--message', text],
-        ['openclaw', 'message', 'send', '--channel', 'feishu', 'send', '-m', text],
+        ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
+        ['openclaw', 'message', 'send', '-t', TARGET, '-m', text],
     ]
 
     for cmd in candidates:
@@ -25,10 +24,10 @@ def send_feishu(text: str):
                 timeout=30,
             )
             if result.returncode == 0:
-                print(f"[OK] sent to {TARGET} via: {' '.join(cmd[:4])} ...")
+                print(f"[OK] sent to {TARGET} via: {' '.join(cmd[:6])} ...")
                 return True
             err = (result.stderr or result.stdout or '').strip()
-            print(f"[ERR] {' '.join(cmd[:4])} ...: {err}")
+            print(f"[ERR] {' '.join(cmd[:6])} ...: {err}")
         except FileNotFoundError:
             print('[ERR] openclaw command not found')
             break
