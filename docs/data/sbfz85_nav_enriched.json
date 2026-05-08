@@ -838,7 +838,7 @@
       "accum_nav": 1.0378,
       "nav_assets": 16117163.64,
       "paid_in_capital": 15530844.64,
-      "cum_return": 0.00260844
+      "cum_return": 0.0
     }
   ],
   "metrics": {
@@ -858,7 +858,7 @@
       "accum_nav": 1.0378,
       "nav_assets": 16117163.64,
       "paid_in_capital": 15530844.64,
-      "cum_return": 0.00260844
+      "cum_return": 0.0
     },
     "min_nav": {
       "received_at": "2026年3月24日 星期二 08:30:31",
