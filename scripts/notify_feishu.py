@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import json
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -7,12 +9,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / 'data'
 TARGET = 'chat:oc_dfd9a75cca7150babd3a194a323f3470'
+OPENCLAW = shutil.which('openclaw') or '/Users/spicyclaw/.npm-global/bin/openclaw'
 
 
 def send_feishu(text: str):
+    env = os.environ.copy()
+    env['PATH'] = '/Users/spicyclaw/.npm-global/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:' + env.get('PATH', '')
     candidates = [
-        ['openclaw', 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
-        ['openclaw', 'message', 'send', '-t', TARGET, '-m', text],
+        [OPENCLAW, 'message', 'send', '--channel', 'feishu', '--target', TARGET, '--message', text],
+        [OPENCLAW, 'message', 'send', '--channel', 'feishu', '-t', TARGET, '-m', text],
     ]
 
     for cmd in candidates:
@@ -21,7 +26,8 @@ def send_feishu(text: str):
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=60,
+                env=env,
             )
             if result.returncode == 0:
                 print(f"[OK] sent to {TARGET} via: {' '.join(cmd[:6])} ...")
@@ -29,12 +35,12 @@ def send_feishu(text: str):
             err = (result.stderr or result.stdout or '').strip()
             print(f"[ERR] {' '.join(cmd[:6])} ...: {err}")
         except FileNotFoundError:
-            print('[ERR] openclaw command not found')
+            print(f'[ERR] openclaw command not found: {cmd[0]}')
             break
         except Exception as e:
             print(f'[ERR] failed: {e}')
 
-    print(f'[LOG] Would send: {text[:100]}')
+    print(f'[LOG] Would send: {text}')
     return False
 
 
@@ -59,7 +65,8 @@ def failure_message(err: str):
 if __name__ == '__main__':
     mode = sys.argv[1] if len(sys.argv) > 1 else 'success'
     if mode == 'success':
-        send_feishu(success_message())
+        ok = send_feishu(success_message())
     else:
         err = sys.argv[2] if len(sys.argv) > 2 else 'unknown error'
-        send_feishu(failure_message(err))
+        ok = send_feishu(failure_message(err))
+    sys.exit(0 if ok else 2)
