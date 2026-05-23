@@ -49,11 +49,11 @@ def success_message():
     f95 = json.loads((DATA_DIR / 'sbfz95_nav_enriched.json').read_text(encoding='utf-8'))
     r85 = f85['rows'][-1]
     r95 = f95['rows'][-1]
-    cta_principal = 640000
+    cta_principal = 470000
     cta_value = round(cta_principal * r85['unit_nav'])
     return (
         '📈 DFund 已完成今日更新\n\n'
-        f'SBFZ85 (衍盛天璇 CTA 一号): {r85["valuation_date"]}，单位净值 {r85["unit_nav"]:.4f}，64万本金当前约 {cta_value:,} 元\n'
+        f'SBFZ85 (衍盛天璇 CTA 一号): {r85["valuation_date"]}，单位净值 {r85["unit_nav"]:.4f}，47万本金当前约 {cta_value:,} 元\n'
         f'SBFZ95 (衍盛开阳多策略混合): {r95["valuation_date"]}，单位净值 {r95["unit_nav"]:.4f}'
     )
 
