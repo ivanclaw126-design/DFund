@@ -948,7 +948,7 @@
       "accum_nav": 1.0307,
       "nav_assets": 16007087.84,
       "paid_in_capital": 15530844.64,
-      "cum_return": 0.00262646
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年5月25日 星期一 19:50:37",
@@ -958,7 +958,7 @@
       "accum_nav": 1.0352,
       "nav_assets": 16077442.32,
       "paid_in_capital": 15530844.64,
-      "cum_return": 0.00700389
+      "cum_return": 0.00436596
     },
     {
       "received_at": "2026年5月26日 星期二 19:30:32",
@@ -968,7 +968,7 @@
       "accum_nav": 1.0358,
       "nav_assets": 16087597.63,
       "paid_in_capital": 15530844.64,
-      "cum_return": 0.00758755
+      "cum_return": 0.00494809
     },
     {
       "received_at": "2026年5月27日 星期三 19:51:18",
@@ -978,18 +978,28 @@
       "accum_nav": 1.032,
       "nav_assets": 10568206.45,
       "paid_in_capital": 10240844.64,
-      "cum_return": 0.00389105
+      "cum_return": 0.00126128
+    },
+    {
+      "received_at": "2026年5月28日 星期四 19:30:47",
+      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-05-28",
+      "valuation_date": "2026-05-28",
+      "unit_nav": 1.0333,
+      "accum_nav": 1.0333,
+      "nav_assets": 10582249.35,
+      "paid_in_capital": 10240844.64,
+      "cum_return": 0.00252256
     }
   ],
   "metrics": {
-    "latest_nav": 1.032,
-    "latest_date": "2026-05-27",
-    "since_inception": 0.0253353204172877,
-    "annualized_return_since_inception": 0.06109345801348676,
-    "last_5d": -9.688983625621983e-05,
-    "last_20d": 0.005260081823495133,
-    "last_60d": 0.008403361344537785,
-    "annualized_vol": 0.0733350653594915,
+    "latest_nav": 1.0333,
+    "latest_date": "2026-05-28",
+    "since_inception": 0.02662692498758079,
+    "annualized_return_since_inception": 0.06383665578720721,
+    "last_5d": 0.005155642023346285,
+    "last_20d": 0.006624452021432248,
+    "last_60d": 0.010167171766546357,
+    "annualized_vol": 0.07297338078001157,
     "max_nav": {
       "received_at": "2026年5月13日 星期三 19:51:28",
       "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-05-13",
