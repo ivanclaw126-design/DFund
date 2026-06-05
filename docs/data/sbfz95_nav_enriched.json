@@ -1008,7 +1008,7 @@
       "accum_nav": 1.0228,
       "nav_assets": 8182702.9,
       "paid_in_capital": 8000000.0,
-      "cum_return": 9.778e-05
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年6月2日 星期二 09:47:54",
@@ -1018,7 +1018,7 @@
       "accum_nav": 1.0227,
       "nav_assets": 8181513.2,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.0
+      "cum_return": -9.777e-05
     },
     {
       "received_at": "2026年6月3日 星期三 09:17:45",
@@ -1028,7 +1028,7 @@
       "accum_nav": 1.0227,
       "nav_assets": 8181573.4,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.0
+      "cum_return": -9.777e-05
     },
     {
       "received_at": "2026年6月4日 星期四 09:17:09",
@@ -1038,18 +1038,28 @@
       "accum_nav": 1.0228,
       "nav_assets": 8182278.4,
       "paid_in_capital": 8000000.0,
-      "cum_return": 9.778e-05
+      "cum_return": 0.0
+    },
+    {
+      "received_at": "2026年6月5日 星期五 09:18:26",
+      "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-06-04",
+      "valuation_date": "2026-06-04",
+      "unit_nav": 1.0229,
+      "accum_nav": 1.0229,
+      "nav_assets": 8182822.17,
+      "paid_in_capital": 8000000.0,
+      "cum_return": 9.777e-05
     }
   ],
   "metrics": {
-    "latest_nav": 1.0228,
-    "latest_date": "2026-06-03",
-    "since_inception": 0.02116613418530333,
-    "annualized_return_since_inception": 0.04863000728954203,
-    "last_5d": 0.0,
-    "last_20d": 0.02773311897106101,
-    "last_60d": -0.01549716045817695,
-    "annualized_vol": 0.10869896000902468,
+    "latest_nav": 1.0229,
+    "latest_date": "2026-06-04",
+    "since_inception": 0.02126597444089451,
+    "annualized_return_since_inception": 0.04855362869972324,
+    "last_5d": 0.00019556077050930654,
+    "last_20d": 0.014379214597382006,
+    "last_60d": -0.026458551441895906,
+    "annualized_vol": 0.10817019415155671,
     "max_nav": {
       "received_at": "2026年3月2日 星期一 08:43:40",
       "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27",
