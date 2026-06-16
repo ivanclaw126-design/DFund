@@ -1078,7 +1078,7 @@
       "accum_nav": 1.0227,
       "nav_assets": 8181829.37,
       "paid_in_capital": 8000000.0,
-      "cum_return": -9.777e-05
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年6月11日 星期四 09:16:09",
@@ -1088,7 +1088,7 @@
       "accum_nav": 1.0227,
       "nav_assets": 8181840.4,
       "paid_in_capital": 8000000.0,
-      "cum_return": -9.777e-05
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年6月12日 星期五 09:20:51",
@@ -1098,7 +1098,7 @@
       "accum_nav": 1.0228,
       "nav_assets": 8182093.23,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.0
+      "cum_return": 9.778e-05
     },
     {
       "received_at": "2026年6月15日 星期一 09:00:12",
@@ -1108,18 +1108,28 @@
       "accum_nav": 1.0227,
       "nav_assets": 8181378.85,
       "paid_in_capital": 8000000.0,
-      "cum_return": -9.777e-05
+      "cum_return": 0.0
+    },
+    {
+      "received_at": "2026年6月16日 星期二 08:54:53",
+      "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-06-15",
+      "valuation_date": "2026-06-15",
+      "unit_nav": 1.0226,
+      "accum_nav": 1.0226,
+      "nav_assets": 8180847.8,
+      "paid_in_capital": 8000000.0,
+      "cum_return": -9.778e-05
     }
   ],
   "metrics": {
-    "latest_nav": 1.0227,
-    "latest_date": "2026-06-12",
-    "since_inception": 0.021066293929712376,
-    "annualized_return_since_inception": 0.04577761614499809,
-    "last_5d": -0.00019552253397203678,
-    "last_20d": -0.00019552253397203678,
-    "last_60d": -0.02497854895604923,
-    "annualized_vol": 0.10515539551728711,
+    "latest_nav": 1.0226,
+    "latest_date": "2026-06-15",
+    "since_inception": 0.02096645367412142,
+    "annualized_return_since_inception": 0.04475063635370535,
+    "last_5d": -0.00019554165037150018,
+    "last_20d": -0.0003910068426197233,
+    "last_60d": -0.012362372030133462,
+    "annualized_vol": 0.10467736127885682,
     "max_nav": {
       "received_at": "2026年3月2日 星期一 08:43:40",
       "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27",
