@@ -1188,7 +1188,7 @@
       "accum_nav": 1.0349,
       "nav_assets": 10748828.29,
       "paid_in_capital": 10386419.17,
-      "cum_return": -0.00786118
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年6月29日 星期一 19:51:43",
@@ -1198,7 +1198,7 @@
       "accum_nav": 1.0359,
       "nav_assets": 10759475.84,
       "paid_in_capital": 10386419.17,
-      "cum_return": -0.0069025
+      "cum_return": 0.00096628
     },
     {
       "received_at": "2026年6月30日 星期二 19:41:06",
@@ -1208,18 +1208,38 @@
       "accum_nav": 1.0432,
       "nav_assets": 10835345.83,
       "paid_in_capital": 10386419.17,
-      "cum_return": 9.587e-05
+      "cum_return": 0.0080201
+    },
+    {
+      "received_at": "2026年7月1日 星期三 21:40:04",
+      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-07-01",
+      "valuation_date": "2026-07-01",
+      "unit_nav": 1.0426,
+      "accum_nav": 1.0426,
+      "nav_assets": 9577924.66,
+      "paid_in_capital": 9186419.17,
+      "cum_return": 0.00744033
+    },
+    {
+      "received_at": "2026年7月2日 星期四 19:40:42",
+      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-07-02",
+      "valuation_date": "2026-07-02",
+      "unit_nav": 1.0343,
+      "accum_nav": 1.0343,
+      "nav_assets": 9501874.91,
+      "paid_in_capital": 9186419.17,
+      "cum_return": -0.00057977
     }
   ],
   "metrics": {
-    "latest_nav": 1.0432,
-    "latest_date": "2026-06-30",
-    "since_inception": 0.03646299056135116,
-    "annualized_return_since_inception": 0.07200678866585486,
-    "last_5d": 0.007047012259870478,
-    "last_20d": 0.01716068642745694,
-    "last_60d": 0.042261964232191085,
-    "annualized_vol": 0.0758447219260437,
+    "latest_nav": 1.0343,
+    "latest_date": "2026-07-02",
+    "since_inception": 0.027620466964729307,
+    "annualized_return_since_inception": 0.05373480915233797,
+    "last_5d": -0.008436391525261211,
+    "last_20d": 0.002131576397635948,
+    "last_60d": 0.03007668558908483,
+    "annualized_vol": 0.07615774760662401,
     "max_nav": {
       "received_at": "2026年5月13日 星期三 19:51:28",
       "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-05-13",
