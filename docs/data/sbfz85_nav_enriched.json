@@ -1248,7 +1248,7 @@
       "accum_nav": 1.0322,
       "nav_assets": 9482614.08,
       "paid_in_capital": 9186419.17,
-      "cum_return": -0.00997506
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年7月7日 星期二 19:30:22",
@@ -1258,7 +1258,7 @@
       "accum_nav": 1.0273,
       "nav_assets": 9437044.52,
       "paid_in_capital": 9186419.17,
-      "cum_return": -0.01467485
+      "cum_return": -0.00474714
     },
     {
       "received_at": "2026年7月8日 星期三 19:40:16",
@@ -1268,7 +1268,7 @@
       "accum_nav": 1.0245,
       "nav_assets": 9411622.94,
       "paid_in_capital": 9186419.17,
-      "cum_return": -0.01736045
+      "cum_return": -0.00745979
     }
   ],
   "metrics": {
