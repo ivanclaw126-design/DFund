@@ -1248,7 +1248,7 @@
       "accum_nav": 1.0226,
       "nav_assets": 8180627.71,
       "paid_in_capital": 8000000.0,
-      "cum_return": 9.78e-05
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年7月7日 星期二 08:40:30",
@@ -1258,7 +1258,7 @@
       "accum_nav": 1.0225,
       "nav_assets": 8180025.34,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.0
+      "cum_return": -9.779e-05
     },
     {
       "received_at": "2026年7月8日 星期三 08:40:54",
@@ -1268,7 +1268,7 @@
       "accum_nav": 1.0228,
       "nav_assets": 8182477.01,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.0002934
+      "cum_return": 0.00019558
     },
     {
       "received_at": "2026年7月9日 星期四 08:40:39",
@@ -1278,18 +1278,28 @@
       "accum_nav": 1.0186,
       "nav_assets": 8148849.31,
       "paid_in_capital": 8000000.0,
-      "cum_return": -0.00381418
+      "cum_return": -0.0039116
+    },
+    {
+      "received_at": "2026年7月10日 星期五 08:30:28",
+      "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-07-09",
+      "valuation_date": "2026-07-09",
+      "unit_nav": 1.0234,
+      "accum_nav": 1.0234,
+      "nav_assets": 8187577.65,
+      "paid_in_capital": 8000000.0,
+      "cum_return": 0.00078232
     }
   ],
   "metrics": {
-    "latest_nav": 1.0186,
-    "latest_date": "2026-07-08",
-    "since_inception": 0.016972843450479225,
-    "annualized_return_since_inception": 0.031838696288557955,
-    "last_5d": -0.0038141809290953566,
-    "last_20d": -0.0040089957954434485,
-    "last_60d": 0.05259894595432457,
-    "annualized_vol": 0.0979993583812302,
+    "latest_nav": 1.0234,
+    "latest_date": "2026-07-09",
+    "since_inception": 0.02176517571884995,
+    "annualized_return_since_inception": 0.040700195502815006,
+    "last_5d": 0.0008801955990220822,
+    "last_20d": 0.000684462696783239,
+    "last_60d": 0.05603136931173269,
+    "annualized_vol": 0.09782232019019772,
     "max_nav": {
       "received_at": "2026年3月2日 星期一 08:43:40",
       "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27",
