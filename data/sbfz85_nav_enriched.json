@@ -1258,7 +1258,7 @@
       "accum_nav": 1.0273,
       "nav_assets": 9437044.52,
       "paid_in_capital": 9186419.17,
-      "cum_return": -0.00474714
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年7月8日 星期三 19:40:16",
@@ -1268,7 +1268,7 @@
       "accum_nav": 1.0245,
       "nav_assets": 9411622.94,
       "paid_in_capital": 9186419.17,
-      "cum_return": -0.00745979
+      "cum_return": -0.00272559
     },
     {
       "received_at": "2026年7月9日 星期四 19:41:20",
@@ -1278,7 +1278,7 @@
       "accum_nav": 1.0295,
       "nav_assets": 9457670.99,
       "paid_in_capital": 9186419.17,
-      "cum_return": -0.00261577
+      "cum_return": 0.00214154
     },
     {
       "received_at": "2026年7月10日 星期五 19:30:53",
@@ -1288,18 +1288,28 @@
       "accum_nav": 1.0278,
       "nav_assets": 9442239.96,
       "paid_in_capital": 9186419.17,
-      "cum_return": -0.00426274
+      "cum_return": 0.00048671
+    },
+    {
+      "received_at": "2026年7月13日 星期一 19:40:46",
+      "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-07-13",
+      "valuation_date": "2026-07-13",
+      "unit_nav": 1.0156,
+      "accum_nav": 1.0156,
+      "nav_assets": 9329714.63,
+      "paid_in_capital": 9186419.17,
+      "cum_return": -0.01138908
     }
   ],
   "metrics": {
-    "latest_nav": 1.0278,
-    "latest_date": "2026-07-10",
-    "since_inception": 0.021162444113263845,
-    "annualized_return_since_inception": 0.03935935546882319,
-    "last_5d": -0.007819287576020795,
-    "last_20d": 0.014710237930694259,
-    "last_60d": 0.012610837438423728,
-    "annualized_vol": 0.07532437452750507,
+    "latest_nav": 1.0156,
+    "latest_date": "2026-07-13",
+    "since_inception": 0.009041231992051868,
+    "annualized_return_since_inception": 0.016478681855098598,
+    "last_5d": -0.016082154621197442,
+    "last_20d": -0.0044113322223311435,
+    "last_60d": 0.0007883326763895582,
+    "annualized_vol": 0.07689500918229994,
     "max_nav": {
       "received_at": "2026年5月13日 星期三 19:51:28",
       "subject": "【基金净值】SBFZ85(总)_衍盛天璇CTA一号私募证券投资基金_2026-05-13",
