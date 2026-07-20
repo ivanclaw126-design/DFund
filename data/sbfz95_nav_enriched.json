@@ -1308,7 +1308,7 @@
       "accum_nav": 1.0104,
       "nav_assets": 8083085.04,
       "paid_in_capital": 8000000.0,
-      "cum_return": -0.00364856
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年7月15日 星期三 08:30:18",
@@ -1318,7 +1318,7 @@
       "accum_nav": 1.0213,
       "nav_assets": 8170398.67,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.00709989
+      "cum_return": 0.01078781
     },
     {
       "received_at": "2026年7月16日 星期四 08:30:24",
@@ -1328,7 +1328,7 @@
       "accum_nav": 1.0198,
       "nav_assets": 8158477.49,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.00562075
+      "cum_return": 0.00930325
     },
     {
       "received_at": "2026年7月17日 星期五 11:01:31",
@@ -1338,18 +1338,28 @@
       "accum_nav": 1.0136,
       "nav_assets": 8108542.53,
       "paid_in_capital": 8000000.0,
-      "cum_return": -0.00049305
+      "cum_return": 0.00316706
+    },
+    {
+      "received_at": "2026年7月20日 星期一 08:30:24",
+      "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-07-17",
+      "valuation_date": "2026-07-17",
+      "unit_nav": 1.0063,
+      "accum_nav": 1.0063,
+      "nav_assets": 8050585.14,
+      "paid_in_capital": 8000000.0,
+      "cum_return": -0.0040578
     }
   ],
   "metrics": {
-    "latest_nav": 1.0136,
-    "latest_date": "2026-07-16",
-    "since_inception": 0.01198083067092659,
-    "annualized_return_since_inception": 0.0215375501543138,
-    "last_5d": -0.009575923392612928,
-    "last_20d": -0.008801095247408464,
-    "last_60d": 0.03428571428571425,
-    "annualized_vol": 0.09844904651639334,
+    "latest_nav": 1.0063,
+    "latest_date": "2026-07-17",
+    "since_inception": 0.004692492012779548,
+    "annualized_return_since_inception": 0.008370219232831433,
+    "last_5d": -0.007691549156887856,
+    "last_20d": -0.016035983181773683,
+    "last_60d": 0.021935614908093815,
+    "annualized_vol": 0.09858931270284058,
     "max_nav": {
       "received_at": "2026年3月2日 星期一 08:43:40",
       "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27",
