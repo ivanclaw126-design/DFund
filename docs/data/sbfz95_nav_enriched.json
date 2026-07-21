@@ -1318,7 +1318,7 @@
       "accum_nav": 1.0213,
       "nav_assets": 8170398.67,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.01078781
+      "cum_return": 0.0
     },
     {
       "received_at": "2026年7月16日 星期四 08:30:24",
@@ -1328,7 +1328,7 @@
       "accum_nav": 1.0198,
       "nav_assets": 8158477.49,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.00930325
+      "cum_return": -0.00146872
     },
     {
       "received_at": "2026年7月17日 星期五 11:01:31",
@@ -1338,7 +1338,7 @@
       "accum_nav": 1.0136,
       "nav_assets": 8108542.53,
       "paid_in_capital": 8000000.0,
-      "cum_return": 0.00316706
+      "cum_return": -0.00753941
     },
     {
       "received_at": "2026年7月20日 星期一 08:30:24",
@@ -1348,18 +1348,28 @@
       "accum_nav": 1.0063,
       "nav_assets": 8050585.14,
       "paid_in_capital": 8000000.0,
-      "cum_return": -0.0040578
+      "cum_return": -0.01468716
+    },
+    {
+      "received_at": "2026年7月21日 星期二 08:30:06",
+      "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-07-20",
+      "valuation_date": "2026-07-20",
+      "unit_nav": 1.0108,
+      "accum_nav": 1.0108,
+      "nav_assets": 8086558.21,
+      "paid_in_capital": 8000000.0,
+      "cum_return": -0.01028101
     }
   ],
   "metrics": {
-    "latest_nav": 1.0063,
-    "latest_date": "2026-07-17",
-    "since_inception": 0.004692492012779548,
-    "annualized_return_since_inception": 0.008370219232831433,
-    "last_5d": -0.007691549156887856,
-    "last_20d": -0.016035983181773683,
-    "last_60d": 0.021935614908093815,
-    "annualized_vol": 0.09858931270284058,
+    "latest_nav": 1.0108,
+    "latest_date": "2026-07-20",
+    "since_inception": 0.009185303514376963,
+    "annualized_return_since_inception": 0.016174275122343706,
+    "last_5d": 0.00039588281868563335,
+    "last_20d": -0.011539213768824608,
+    "last_60d": 0.026401299756295682,
+    "annualized_vol": 0.0984060294124593,
     "max_nav": {
       "received_at": "2026年3月2日 星期一 08:43:40",
       "subject": "【基金净值】SBFZ95(总)_衍盛开阳多策略混合私募证券投资基金_2026-02-27",
